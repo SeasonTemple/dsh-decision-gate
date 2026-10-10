@@ -143,13 +143,16 @@ Every decision row records its `judge` backend and `model`; `dsh-llm` rows also 
 
 ## Settings page
 
-The plugin declares a schemastery `Config` schema, which the DSH settings
-service projects into this profile's configuration form (`ctx.settings`):
-**the judge backend, pinned provider/model, matcher, log path, all five
-thresholds, and the exempt prefixes are editable as a form**, validated on
-write, persisted into the profile patch, and applied by the Loader without a
-restart. No YAML hand-editing for the common cases. The same keys keep working
-in `cordis.patch.yml` for scripted setups.
+> **Not working yet (0.4.0).** The plugin declares a schemastery `Config`
+> schema, and both READMEs used to promise that DSH's settings service projects
+> it into an editable form. It does not: the browser half fails silently (one
+> `console.error`, no card), so no settings page appears. Configuration happens
+> **only** through the profile's `cordis.patch.yml` until this is fixed.
+>
+> The keys below are all real and all read from the profile entry; only the form
+> that was supposed to edit them is missing.
+
+The profile entry is the single source of truth: there is deliberately **no
 
 The profile entry is the single source of truth: there is deliberately **no
 environment-variable layer**, so what the card shows is what runs — no second
