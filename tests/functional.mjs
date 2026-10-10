@@ -20,9 +20,14 @@ rmSync(LOG, { force: true })
 function refs(config) {
   const out = {}
   for (const [key, value] of Object.entries(config)) {
-    out[key] = value !== null && typeof value === 'object' && !Array.isArray(value)
-      ? { get: () => refs(value) }
-      : { get: () => value }
+    // A volatile array projects as an array of live refs, not an array of
+    // values -- the shape that made a configured list read as empty. Arrays
+    // therefore get the same wrapping as objects, element by element.
+    out[key] = Array.isArray(value)
+      ? { get: () => value.map((item) => ({ get: () => item })) }
+      : value !== null && typeof value === 'object'
+        ? { get: () => refs(value) }
+        : { get: () => value }
   }
   return out
 }
