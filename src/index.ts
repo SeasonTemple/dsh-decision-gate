@@ -837,13 +837,20 @@ function policyFrom(config: Record<string, unknown>): Policy {
     const fromConfig = config[key]
     return typeof fromConfig === 'number' && Number.isFinite(fromConfig) ? fromConfig : fallback
   }
-  const fromConfig = config.exemptPrefixes
-  const exemptPrefixes = Array.isArray(fromConfig) && fromConfig.every(item => typeof item === 'string')
-    ? (fromConfig as string[])
+  // Same ref-unwrapping as authorizedOperations below: a volatile array may
+  // project as an array of refs, and an element that is really a string would
+  // then fail the type check and silently drop the whole configured list.
+  const fromExempt = configValue(config.exemptPrefixes)
+  const exemptPrefixes = Array.isArray(fromExempt)
+    ? fromExempt.map((item) => configValue(item)).filter((item): item is string => typeof item === 'string')
     : DEFAULT_EXEMPT_PREFIXES
-  const fromAuthorized = config.authorizedOperations
-  const authorizedOperations = Array.isArray(fromAuthorized) && fromAuthorized.every(item => typeof item === 'string')
-    ? (fromAuthorized as string[]).filter(item => item.trim() !== '')
+  // A volatile array can project as an array of refs rather than an array of
+  // strings, so each element is unwrapped before the type check. Without this,
+  // an entry that is present and correct still fails `typeof === 'string'` and
+  // the whole list silently falls back to empty -- the bug this guards.
+  const fromAuthorized = configValue(config.authorizedOperations)
+  const authorizedList = Array.isArray(fromAuthorized)
+    ? fromAuthorized.map((item) => configValue(item)).filter((item): item is string => typeof item === 'string' && item.trim() !== '')
     : []
   return {
     destructive: pick('destructive', DEFAULT_POLICY.destructive),
@@ -852,7 +859,7 @@ function policyFrom(config: Record<string, unknown>): Policy {
     read_only: pick('readOnly', DEFAULT_POLICY.read_only),
     routine_dev: pick('routineDev', DEFAULT_POLICY.routine_dev),
     exemptPrefixes,
-    authorizedOperations,
+    authorizedOperations: authorizedList,
   }
 }
 
