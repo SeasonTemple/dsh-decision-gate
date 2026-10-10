@@ -258,10 +258,10 @@ window.__ModuleLoader__.load({
       react.useEffect(() => {
         var alive = true;
         var load = () => {
-          // The catalog is an enhancement: pickers fall back to text inputs when
-          // it cannot be read, so a missing `remote.session` must degrade rather
-          // than throw inside the effect.
-          var call = remote.session && typeof remote.session.modelCatalog === 'function'
+          // `remote.session` is injected, so reaching it cannot throw. The catalog
+          // itself stays optional: a host without modelCatalog degrades to text
+          // inputs rather than blocking configuration.
+          var call = typeof remote.session.modelCatalog === 'function'
             ? remote.session.modelCatalog()
             : Promise.reject(new Error('no model catalog on this host'));
           call.then((response) => {
@@ -501,7 +501,7 @@ window.__ModuleLoader__.load({
     }
 
     exports.name = 'dsh-decision-gate-client';
-    exports.inject = ['slots', 'configForms', 'remote'];
+    exports.inject = ['slots', 'configForms', 'remote', 'remote.session'];
     exports.apply = apply;
     return module.exports;
   },
