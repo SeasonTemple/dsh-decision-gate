@@ -1,15 +1,29 @@
+<div align="center">
+
 # dsh-decision-gate
 
-[English](README.md) | 中文
+**DSH 的 PreToolUse 决策门禁——对每次 shell 工具调用提五个是非问题，然后放行、询问或拒绝，裁判后端可替换。**
+
+<sub>校准过的阈值、按路径的豁免、JSONL 决策日志——因为联系不上裁判的门禁，绝不能反过来成为卡死 harness 的那个东西。<a href="#工作原理">工作原理 →</a></sub>
+
+[![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL_1.1-blue.svg)](LICENSE)
+[![Node >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
+[![Tests: 120 passing](https://img.shields.io/badge/tests-120_passing-brightgreen.svg)](#验证)
+
+[English](README.md) · [简体中文](README.zh.md) · [工作原理](#工作原理) · [裁判后端](#裁判后端) · [安装](#安装) · [验证](#验证) · [版本记录](CHANGELOG.md)
+
+</div>
+
+---
 
 DSH（DeepSeek Harness）的 PreToolUse 门禁插件。在每个 shell 类工具调用
-（`bash`、`pwsh`、`terminal_*`）执行前，插件向 TypeSafe 的 Jev
-（`jev-1.13.0`）提五个是非问题，按固定阈值把该调用判为 **allow / ask / deny**，
-并把每次决策追加写入 JSONL 日志，供后续用真实数据校准阈值。
+（`bash`、`pwsh`、`terminal_*`）执行前，插件向裁判提五个是非问题，按固定
+阈值把该调用判为 **allow / ask / deny**，并把每次决策追加写入 JSONL 日志，
+供后续用真实数据校准阈值。
 
 这个门禁没有任何提权能力，只做一件事：阻止会话“悄悄做了人不会想做的事”，
 其余时候不碍事。
-
+---
 ## 工作原理
 
 对每个受管调用，插件把工具名与参数（每个字符串截断到 8000 字符）发给

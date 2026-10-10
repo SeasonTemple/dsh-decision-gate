@@ -1,16 +1,32 @@
+<div align="center">
+
 # dsh-decision-gate
 
-[中文](README.zh.md) | English
+**A PreToolUse decision gate for DSH — asks five yes/no questions about every shell tool call, then allows, asks, or denies it, with a swappable judge backend.**
+
+<sub>Calibrated thresholds, a path-scoped exemption, and a JSONL decision log — because a gate that cannot reach its judge must never become the thing that blocks the harness. <a href="#how-it-works">How it works →</a></sub>
+
+[![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL_1.1-blue.svg)](LICENSE)
+[![Node >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
+[![Tests: 120 passing](https://img.shields.io/badge/tests-120_passing-brightgreen.svg)](#verify)
+
+[English](README.md) · [简体中文](README.zh.md) · [How it works](#how-it-works) · [Judge backends](#judge-backends) · [Install](#install) · [Verify](#verify) · [Changelog](CHANGELOG.md)
+
+</div>
+
+---
 
 A DSH (DeepSeek Harness) PreToolUse gate. Before every shell tool call
-(`bash`, `pwsh`, `terminal_*`) runs, the plugin asks TypeSafe's Jev
-(`jev-1.13.0`) five yes/no questions about the operation, maps the answers
-through fixed thresholds to **allow / ask / deny**, and appends every decision
-to a JSONL log so the thresholds can be calibrated later against real data.
+(`bash`, `pwsh`, `terminal_*`) runs, the plugin asks a judge five yes/no
+questions about the operation, maps the answers through fixed thresholds to
+**allow / ask / deny**, and appends every decision to a JSONL log so the
+thresholds can be calibrated later against real data.
 
 The gate has no power to escalate anything. Its one job is to stop the session
 from silently doing something a person would not have wanted — and to stay out
 of the way otherwise.
+
+---
 
 ## How it works
 
