@@ -1,0 +1,14 @@
+{
+  "subject": "not sure",
+  "body": "hello? things are weird lately",
+  "plan": "free",
+  "country": "BR",
+  "offline_judgments": {
+    "intent": "other",
+    "intent_confidence": 0.31,
+    "urgency": 0.4,
+    "urgency_confidence": 0.35,
+    "security_risk": 0.08,
+    "wants_refund": 0.02
+  }
+}

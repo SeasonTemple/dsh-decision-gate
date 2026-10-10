@@ -1,0 +1,21 @@
+# dsh-decision-gate bundle patch: mount the gate under its package name.
+#
+# The row lives HERE, in the package's own bundle patch, so installing the
+# bundle into any profile mounts the gate with zero manual profile edits —
+# install-and-run is the contract. The trade (measured): a row contributed by
+# a bundle layer is not owned by the profile's root Include, so the settings
+# card renders read-only; configuration happens through these defaults or a
+# profile-patch row that replaces them. Every key is optional, and the runtime
+# fallback chain is config key → environment variable → built-in default.
+#
+# Everything in this file must be machine-neutral, because the file ships in
+# the package. Deploy-local values — an absolute logPath, a region-block
+# proxy, an API key — belong in the profile's own cordis.patch.yml, which
+# overrides this row by id.
+
+- insert:
+    - id: decision-gate
+      name: 'dsh-decision-gate'
+      config:
+        judgeProvider: 'typesafe'
+        matcher: '^(bash|pwsh|terminal_)'

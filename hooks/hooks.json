@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(bash|pwsh|terminal_)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/example/app/.venv/Scripts/python.exe C:/example/dsh-decision-gate/hooks/decision_gate.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
