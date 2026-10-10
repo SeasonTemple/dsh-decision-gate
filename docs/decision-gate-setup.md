@@ -116,13 +116,14 @@ stock 安装下设置卡片是**只读**的（它仍展示每个生效值和裁�
 的意义所在）。一条指向 `decision-gate` 的 profile-patch 行既是配置通道，也让卡片
 恢复可写。
 
-### 2. 设置卡片（表单）
+### 2. 设置卡片（表单）—— 0.4.0 起不可用
 
-插件声明了 schemastery `Config` schema，DSH 的 settings 服务会把它投影成
-profile 的配置表单（`ctx.settings`）：**裁判后端、钉死的 provider/model、
-matcher、日志路径、五个阈值、豁免前缀全部是表单字段**，写入时校验、持久化进
-profile patch、由 Loader 应用——不用重启，也不用手改 YAML。同样的键在
-`cordis.patch.yml` 里依然有效（脚本化部署用）。
+插件声明了 schemastery `Config` schema，但**它不会变成设置页**：浏览器半侧
+`dsh/client.js` 加载失败时只留一句 `console.error` 就 return，整个卡片不渲染，
+而 DSH 没有任何可见提示。0.4.0 的实测结果就是没有设置页。
+
+在修好之前，配置**只能**走上面的 profile patch 行。下面这些键都是真的、都从
+profile 条目读取；缺的只是那个本该编辑它们的表单。
 
 profile 条目是唯一真源，且**刻意没有环境变量层**——卡片显示的就是实际跑的，
 不存在第二种真相。（`hooks/` 下的 Python hook 孪生仍读 `DECISION_GATE_*` 环境

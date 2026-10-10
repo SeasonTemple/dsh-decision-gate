@@ -4,6 +4,38 @@ All notable changes to this project are documented here. The project uses
 semantic versioning; the version in `package.json` and `dsh.plugin.json` is
 authoritative.
 
+## [0.4.0] - 2026-10-10
+
+### Changed
+
+- **Version reset from 1.4.0 to 0.4.0.** The 1.x line claimed a maturity this
+  project does not have. Concretely, at the moment 1.4.0 was cut: the settings
+  card documented in both READMEs did not render at all; the hook form's
+  `hooks.json` carried an absolute path into an unrelated workspace's venv; and
+  `authorizedOperations` had shipped three bugs that every test passed and that
+  broke on the first real command. That is a 0.x project. `1.0.0` on 2026-09-22
+  was premature for the same reason, and the numbers in between compounded it.
+- Version numbering now follows what is actually verifiable: the gate itself
+  works and is covered by CI, but the configuration surface does not, so the
+  project is not at 1.0.
+
+### Known broken (recorded so the version means something)
+
+- **The settings card does not render.** Both READMEs promise a form in
+  设置 → 内置插件 and on the Plugins page's bundle detail. It does not appear.
+  `dsh/client.js` fails silently — one `console.error` and no card — so the
+  configuration surface promised in the docs is absent. Until this is fixed,
+  configuration happens only through the profile's `cordis.patch.yml`.
+- **`hooks/hooks.json` portability is fixed but unverified.** It now reads
+  `python hooks/decision_gate.py`; whether DSH's hook runner resolves that from
+  the project root has not been confirmed on a second machine.
+
+### Notes
+
+- The `v1.4.0` tag and GitHub Release still exist. Deleting them needs `gh`,
+  which this environment cannot reach for that command; the reset is recorded
+  here so the history stays honest either way.
+
 ## [1.4.0] - 2026-10-10
 
 ### Added
