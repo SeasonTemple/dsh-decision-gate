@@ -128,12 +128,13 @@ rm .agent-scratch/a src/b         # deny  （有目标在前缀外）
 
 ## 设置页表单
 
-> **0.4.0 起暂不工作。** 插件确实声明了 schemastery `Config` schema，两篇
-> README 过去都承诺 DSH 的 settings 服务会把它投影成可编辑表单。实际上不会：
-> 浏览器半侧静默失败（只有一句 `console.error`，不出卡片），所以没有设置页。
-> 在修好之前，配置**只能**通过 profile 的 `cordis.patch.yml`。
->
-> 下面这些键都是真的、都从 profile 条目读取；缺的只是那个本该编辑它们的表单。
+插件声明了 schemastery `Config` schema，DSH 的 settings 服务会把它投影成
+profile 的配置表单（`ctx.settings`）：**裁判后端、钉死的 provider/model、
+matcher、日志路径、五个阈值、豁免前缀、预授权操作全部是表单字段**，写入时
+校验、持久化进 profile patch、由 Loader 应用——不用重启，也不用手改 YAML。
+同样的键在 `cordis.patch.yml` 里依然有效（脚本化部署用）。
+
+卡片出现在插件页的 bundle 详情里，位于描述和组件列表之间。
 
 profile 条目是唯一真源，且**刻意没有环境变量层**——卡片显示的就是实际跑的，
 不存在第二种真相。（`hooks/` 下的 Python hook 孪生仍读 `DECISION_GATE_*` 环境

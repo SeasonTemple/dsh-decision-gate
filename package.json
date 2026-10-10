@@ -1,6 +1,6 @@
 {
   "name": "dsh-decision-gate",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "A DSH PreToolUse decision gate — five questions before every shell command, then allow, ask, or deny. Swappable judge backend, path-scoped exemption, JSONL decision log, and a pre-authorized list for approved irreversible steps.",
   "type": "module",
   "main": "lib/index.js",

@@ -4,6 +4,36 @@ All notable changes to this project are documented here. The project uses
 semantic versioning; the version in `package.json` and `dsh.plugin.json` is
 authoritative.
 
+## [0.5.0] - 2026-10-10
+
+### Fixed
+
+- **The settings card renders.** 0.4.0 shipped a card that never appeared, and
+  every failure path was silent. Three separate causes, found one at a time:
+  the browser half treated `configForms`, `slots`, and `remote` as optional
+  inside a scoped inject, so one unresolvable name meant the callback never
+  fired and the card never mounted; `remote.session` was not injected, and
+  reaching an uninjected service throws before any guard can run — the
+  console's `cannot get property "remote.session" without inject` was the
+  whole diagnosis; and a failed `require` returned after a single
+  `console.error`, which is why a documented settings page could simply be
+  absent. All three now fail visibly.
+
+### Docs
+
+- Both READMEs and the setup doc describe the settings card as working, because
+  it now is. The 0.4.0 sections that said it did not render — and that
+  configuration happened only through `cordis.patch.yml` — are corrected rather
+  than left to rot.
+- The setup doc records the three silent failure modes and the console line
+  that ended the hunt, so the next person does not repeat it.
+
+### Notes
+
+- Still unverified: `hooks/hooks.json` portability. It now reads
+  `python hooks/decision_gate.py`, but no second machine has confirmed that
+  DSH's hook runner resolves that from the project root.
+
 ## [0.4.0] - 2026-10-10
 
 ### Changed
