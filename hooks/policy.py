@@ -135,7 +135,41 @@ def is_authorized(command: str, entries: tuple[str, ...] | list[str]) -> bool:
     # (`git push origin main 2>&1 | Select-Object -Last 3`); drop those tails so
     # the command itself is what gets compared.
     statements = [
-        re.split(r"\s*(?:\||>>|>|2>)\s*", statement)[0].strip() for statement in statements
+        # Pipe first, then strip the redirection tail off what remains: in
+        # `git push origin main 2>&1 | Select-Object -Last 3` the redirection sits
+        # before the pipe, so stripping the tail first leaves `... 2>&1` behind.
+        statement.split("|")[0].strip()
+        for statement in statements
     ]
-    wanted = [" ".join(entry.split()) for entry in entries]
+    statements = [
+        re.sub(r"\s*\d*>>?\s*\S*\s*$", "", statement)
+        for statement in statements
+    ]
+    # Drop the tokens that only say where to run, not what to run.
+    statements = [_strip_locators(statement) for statement in statements]
+    wanted = [_strip_locators(entry) for entry in entries]
     return any(statement in wanted for statement in statements)
+
+
+def _strip_locators(statement: str) -> str:
+    """Remove the tokens that only say *where* to run, not *what* to run.
+
+    `cd /repo`, `Set-Location 'E:/x'` and `git -C /repo push` all name the same
+    action, and a person pre-authorizing `git push origin main` cannot know which
+    wrapper a shell call will arrive in. Mirrors `stripLocators` in
+    src/index.ts.
+    """
+    words = statement.split()
+    out: list[str] = []
+    index = 0
+    while index < len(words):
+        word = words[index]
+        if not out and word in ("cd", "Set-Location", "sl"):
+            index += 2
+            continue
+        if word in ("-C", "--git-dir", "--work-tree"):
+            index += 2
+            continue
+        out.append(word)
+        index += 1
+    return " ".join(out)

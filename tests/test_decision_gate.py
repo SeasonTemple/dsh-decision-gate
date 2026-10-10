@@ -146,6 +146,16 @@ def test_authorization_matches_a_whole_statement() -> None:
         is True
     )
     assert decision_gate.is_authorized("cd /tmp && git push origin main", entries) is True
+    # the exact shape of a rejected call: a `git -C` locator with a Windows
+    # backslash path, and a redirection that sits *before* the pipe. Both
+    # halves have to be stripped in the right order for this to match.
+    assert (
+        decision_gate.is_authorized(
+            "git -C 'E:\\workspace\\dsh-decision-gate' push origin main 2>&1 | Select-Object -Last 3",
+            entries,
+        )
+        is True
+    )
     # a different command is still a different command
     assert decision_gate.is_authorized("git push origin main --force", entries) is False
     assert decision_gate.is_authorized("git push origin feature", entries) is False
