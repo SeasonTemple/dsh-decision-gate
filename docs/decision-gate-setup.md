@@ -150,6 +150,7 @@ schema 运行时需要 `@deepseek-ai/schemastery`，按裸包名从插件自身�
 | `readOnly` | `0.80` |
 | `routineDev` | `0.75` |
 | `exemptPrefixes` | `['.agent-scratch']` |
+| `authorizedOperations` | `[]`——预授权的整条命令；命中后把 external_irreversible 的询问降级为放行 |
 
 ### 裁判后端与密钥
 
@@ -268,6 +269,37 @@ rm -rf src                        # deny  （destructive）
 cat .agent-scratch/keys.txt       # deny  （secret 不降级）
 rm .agent-scratch/a src/b         # deny  （有目标在前缀外）
 ```
+
+## 预授权不可逆操作
+
+豁免解决“agent 被锁死在自家临时文件”，但它只作用于 `destructive`，且只认 session
+cwd 之内的路径。还有一类摩擦它管不到：**已经和人确认过的不可逆动作，每次重跑都要再问
+一遍**。典型如推送发布包——人已经同意“这个仓库公开、这个分支推 origin”，门禁却没有
+上下文概念，于是 `git push origin main` 每跑一次都判 `external_irreversible` → ask。
+
+`authorizedOperations` 就是为这一种情况留的口子：
+
+```yaml
+- id: decision-gate
+  config:
+    authorizedOperations:
+      - 'git push origin main'
+```
+
+命中后 `external_irreversible` 的询问降级为放行，规则名 `authorized_external`，日志里
+记 `authorized: true`，所以每一次“被放行的不可逆操作”都可追溯。
+
+三条边界，逐条都是设计约束而不是疏漏：
+
+1. **整条命令精确匹配**（空白规范化后全等）。`git push origin main --force`、
+   `echo hi && git push origin main` 都不命中——白名单条目被包在更长命令里时，外层命令
+   保留自己的判定。用正则白名单在实践中几乎必然被写宽，所以只做全等。
+2. **只降级 `external_irreversible` 这一条规则**。`secret_exposure` 和 `destructive`
+   的判定排在它前面，所以同时泄密或破坏数据的命令在到达这条之前就已经 deny——
+   白名单洗不白任何东西。
+3. **默认空数组**，不改变任何现有行为。想关掉就把列表清空。
+
+ hook 孪生走同名的环境变量 `DECISION_GATE_AUTHORIZED_OPERATIONS`（逗号分隔）。
 
 ---
 

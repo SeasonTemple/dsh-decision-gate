@@ -137,6 +137,48 @@ function exemptSection(): number {
     console.log(`MISMATCH exempt must never downgrade a secret deny, got ${secretHeld.action}/${secretHeld.rule}`)
   }
   console.log(`\nexemption: ${EXEMPT_CASES.length} parser cases + 3 downgrade rules, failures: ${failures}`)
+  return failures + authorizedSection()
+}
+
+const EXTERNAL_SIGNALS = { read_only: 0.02, destructive: 0.02, secret_exposure: 0.02, external_irreversible: 0.93, routine_dev: 0.30 }
+const EXTERNAL_AND_SECRET = { read_only: 0.04, destructive: 0.03, secret_exposure: 0.87, external_irreversible: 0.87, routine_dev: 0.03 }
+const EXTERNAL_AND_DESTRUCTIVE = { read_only: 0.02, destructive: 0.65, secret_exposure: 0.02, external_irreversible: 0.91, routine_dev: 0.07 }
+
+/** Offline section: pre-authorized commands, and what the whitelist must NOT do. */
+function authorizedSection(): number {
+  let failures = 0
+  const check = (label: string, ok: boolean, got: string): void => {
+    if (!ok) {
+      failures += 1
+      console.log(`MISMATCH ${label}: got ${got}`)
+    }
+  }
+
+  // 1. the intended case: an approved irreversible step stops asking
+  const allowed = decide(EXTERNAL_SIGNALS as never, DEFAULT_POLICY, false, true)
+  check('authorized external should allow',
+    allowed.action === 'allow' && allowed.rule === 'authorized_external',
+    `${allowed.action}/${allowed.rule}`)
+
+  // 2. without the flag the same signals still ask
+  const asked = decide(EXTERNAL_SIGNALS as never, DEFAULT_POLICY, false, false)
+  check('unauthorized external should still ask',
+    asked.action === 'ask' && asked.rule === 'external_irreversible',
+    `${asked.action}/${asked.rule}`)
+
+  // 3. the whitelist must never launder a secret verdict
+  const secretHeld = decide(EXTERNAL_AND_SECRET as never, DEFAULT_POLICY, false, true)
+  check('authorized must not downgrade a secret deny',
+    secretHeld.action === 'deny' && secretHeld.rule === 'secret_exposure',
+    `${secretHeld.action}/${secretHeld.rule}`)
+
+  // 4. nor a destructive one
+  const destructiveHeld = decide(EXTERNAL_AND_DESTRUCTIVE as never, DEFAULT_POLICY, false, true)
+  check('authorized must not downgrade a destructive deny',
+    destructiveHeld.action === 'deny' && destructiveHeld.rule === 'destructive',
+    `${destructiveHeld.action}/${destructiveHeld.rule}`)
+
+  console.log(`\nauthorization: 4 decision rules, failures: ${failures}`)
   return failures
 }
 

@@ -115,6 +115,7 @@ rm .agent-scratch/a src/b         # deny  （有目标在前缀外）
 | `readOnly` | `0.80` |
 | `routineDev` | `0.75` |
 | `exemptPrefixes` | `['.agent-scratch']` |
+| `authorizedOperations` | `[]`——整条命令精确匹配才生效，命中后把 external_irreversible 的询问降级为放行 |
 
 鉴权：`dsh-llm` 后端不需要任何额外凭证——它直接搭 DSH 已为该 provider 解析好的
 凭证。`typesafe` 后端的密钥按候选解析，profile 配置优先：

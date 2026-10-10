@@ -103,6 +103,42 @@ def test_secret_exposure_outranks_destructive() -> None:
     assert decide(signals(destructive=0.99, secret_exposure=0.99)).rule == "secret_exposure"
 
 
+
+def test_a_pre_authorized_irreversible_step_is_allowed() -> None:
+    decision = decide(signals(external_irreversible=0.93), authorized=True)
+    assert decision.action is Action.ALLOW
+    assert decision.rule == "authorized_external"
+
+
+def test_the_same_step_asks_without_the_authorization() -> None:
+    decision = decide(signals(external_irreversible=0.93), authorized=False)
+    assert decision.action is Action.ASK
+    assert decision.rule == "external_irreversible"
+
+
+def test_authorization_never_launders_a_secret_verdict() -> None:
+    decision = decide(signals(secret_exposure=0.87, external_irreversible=0.87), authorized=True)
+    assert decision.action is Action.DENY
+    assert decision.rule == "secret_exposure"
+
+
+def test_authorization_never_launders_a_destructive_verdict() -> None:
+    decision = decide(signals(destructive=0.65, external_irreversible=0.91), authorized=True)
+    assert decision.action is Action.DENY
+    assert decision.rule == "destructive"
+
+
+def test_an_empty_authorization_list_never_matches() -> None:
+    assert decision_gate.is_authorized("git push origin main", []) is False
+
+
+def test_authorization_matches_the_whole_command_only() -> None:
+    entries = ["git push origin main"]
+    assert decision_gate.is_authorized("git push origin main", entries) is True
+    assert decision_gate.is_authorized("  git   push   origin main  ", entries) is True
+    assert decision_gate.is_authorized("git push origin main --force", entries) is False
+    assert decision_gate.is_authorized("echo hi && git push origin main", entries) is False
+    assert decision_gate.is_authorized("git push origin feature", entries) is False
 def test_a_weak_read_signal_does_not_allow() -> None:
     assert decide(signals(read_only=0.79)).action is Action.ASK
 

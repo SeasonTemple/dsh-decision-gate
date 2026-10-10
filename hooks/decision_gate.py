@@ -38,7 +38,7 @@ from typing import Any, Mapping, Sequence
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from policy import Action, Decision, Policy, Signals, decide
+from policy import Action, Decision, Policy, Signals, decide, is_authorized
 from exempt import DEFAULT_EXEMPT_PREFIXES, is_exempt, prefixes_from_env
 
 HOOK_EVENT_NAME = "PreToolUse"
@@ -180,6 +180,13 @@ def policy_from_env() -> Policy:
             defaults.exempt_prefixes
             if raw_prefixes is None
             else prefixes_from_env(raw_prefixes, defaults.exempt_prefixes)
+        ),
+        # Unset keeps no pre-authorized commands; set-but-empty also means none.
+        # Comma-separated, whole-command entries only.
+        authorized_operations=tuple(
+            part.strip()
+            for part in os.environ.get("DECISION_GATE_AUTHORIZED_OPERATIONS", "").split(",")
+            if part.strip()
         ),
     )
 
@@ -345,9 +352,19 @@ def main() -> int:
             if isinstance(command, str)
             else False
         )
-        decision: Decision = decide(signals, policy, exempt)
+        # Whole-command match against the pre-authorized list: the command
+        # text must equal an entry after whitespace normalization, so a
+        # whitelisted string carried inside a longer command never matches.
+        authorized = (
+            is_authorized(command, policy.authorized_operations)
+            if isinstance(command, str)
+            else False
+        )
+        decision: Decision = decide(signals, policy, exempt, authorized)
         if exempt:
             record["exempt"] = True
+        if authorized:
+            record["authorized"] = True
     except Exception as error:  # noqa: BLE001 - any failure must degrade, never block
         record["error"] = f"{type(error).__name__}: {error}"
         record["duration_ms"] = round((time.monotonic() - started) * 1000)
