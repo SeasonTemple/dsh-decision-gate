@@ -110,6 +110,20 @@ export declare function toSignals(answers: unknown): Signals;
 export declare function resolveApiKey(configured?: () => string, envName?: string): string;
 export declare function resolveProxyAgent(configured?: string): Dispatcher | null;
 /**
+ * Statement-level match against the pre-authorized list.
+ *
+ * Not whole-command equality: a shell call always arrives wrapped --
+ * `Set-Location`, `git -C`, a trailing `| Select-Object` -- and the person
+ * pre-authorizing `git push origin main` cannot predict that wrapper, so
+ * equality made the list unmatchable in practice. Split on statement
+ * separators and let any complete statement stand for itself.
+ *
+ * Safety does not rest on this: `secret_exposure` and `destructive` are still
+ * judged on the whole command first, and the gate documents that it is not a
+ * defence against an adversarial agent.
+ */
+export declare function isAuthorizedMatch(command: string, entries: readonly string[]): boolean;
+/**
  * Plugin configuration.
  *
  * The declared schemastery schema is what the DSH settings service projects

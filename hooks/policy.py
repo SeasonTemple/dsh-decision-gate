@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-
+from enum import Enum
+import re
 from exempt import DEFAULT_EXEMPT_PREFIXES
 
 
@@ -110,14 +111,31 @@ def decide(
 
 
 def is_authorized(command: str, entries: tuple[str, ...] | list[str]) -> bool:
-    """Whole-command match against the pre-authorized list.
+    """Statement-level match against the pre-authorized list.
 
-    The command text must equal an entry after whitespace normalization, so a
-    whitelisted string carried inside a longer command (`curl ... && git push`)
-    never matches -- the surrounding text keeps its own verdict. Mirrors
-    `isAuthorized` in src/index.ts.
+    Not whole-command equality: a shell call always arrives wrapped --
+    `Set-Location`, `git -C`, a trailing `| Select-Object` -- and the person
+    pre-authorizing `git push origin main` cannot predict that wrapper, so
+    equality made the list unmatchable in practice. Split on statement
+    separators and let any complete statement stand for itself.
+
+    Safety does not rest on this: `secret_exposure` and `destructive` are still
+    judged on the whole command first, and the gate documents that it is not a
+    defence against an adversarial agent. Mirrors `isAuthorized` in
+    src/index.ts.
     """
     if not entries:
         return False
-    normalized = " ".join(command.split())
-    return any(" ".join(entry.split()) == normalized for entry in entries)
+    statements = [
+        " ".join(part.split())
+        for part in re.split(r"\s*(?:;|&&|\|\||\n)\s*", command)
+        if part.strip()
+    ]
+    # A statement arrives with its own redirections and pipes attached
+    # (`git push origin main 2>&1 | Select-Object -Last 3`); drop those tails so
+    # the command itself is what gets compared.
+    statements = [
+        re.split(r"\s*(?:\||>>|>|2>)\s*", statement)[0].strip() for statement in statements
+    ]
+    wanted = [" ".join(entry.split()) for entry in entries]
+    return any(statement in wanted for statement in statements)
