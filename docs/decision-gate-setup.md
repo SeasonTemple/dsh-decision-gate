@@ -116,15 +116,20 @@ stock 安装下设置卡片是**只读**的（它仍展示每个生效值和裁�
 的意义所在）。一条指向 `decision-gate` 的 profile-patch 行既是配置通道，也让卡片
 恢复可写。
 
-### 2. 设置卡片（表单）—— 0.4.0 起不可用
+### 2. 设置卡片（表单）
 
-插件声明了 schemastery `Config` schema，但**它不会变成设置页**：浏览器半侧
-`dsh/client.js` 加载失败时只留一句 `console.error` 就 return，整个卡片不渲染，
-而 DSH 没有任何可见提示。0.4.0 的实测结果就是没有设置页。
+插件声明了 schemastery `Config` schema，DSH 的 settings 服务把它投影成
+profile 的配置表单：**所有键都是表单字段**，写入时校验、持久化进 profile
+patch、由 Loader 应用——不用重启，也不用手改 YAML。同样的键在
+`cordis.patch.yml` 里依然有效。
 
-在修好之前，配置**只能**走上面的 profile patch 行。下面这些键都是真的、都从
-profile 条目读取；缺的只是那个本该编辑它们的表单。
+卡片在插件页的 bundle 详情里，位于描述和组件列表之间。
 
+排障记录（0.4.0 → 0.5.0）：这张卡片曾经完全不渲染，而三条失败路径全是静默的——
+`require` 失败只留一句 `console.error`；`inject: []` 却使用 `configForms`/
+`slots`/`remote`，scoped inject 有一个名字解析不了整批就不触发；`remote.session`
+未 inject 时**属性访问本身会抛**，在守卫生效之前就崩了。现在三条都有可见失败，
+最后一个的报错原文是 `cannot get property "remote.session" without inject`。
 profile 条目是唯一真源，且**刻意没有环境变量层**——卡片显示的就是实际跑的，
 不存在第二种真相。（`hooks/` 下的 Python hook 孪生仍读 `DECISION_GATE_*` 环境
 变量：那是 hook 形态唯一的配置通道，属于另一条部署路径。）
