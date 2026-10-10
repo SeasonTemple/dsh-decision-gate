@@ -829,6 +829,33 @@ function appendLog(record: Record<string, unknown>, path: string): void {
   }
 }
 
+/**
+ * Statement-level match against the pre-authorized list.
+ *
+ * Not whole-command equality: a shell call always arrives wrapped --
+ * `Set-Location`, `git -C`, a trailing `| Select-Object` -- and the person
+ * pre-authorizing `git push origin main` cannot predict that wrapper, so
+ * equality made the list unmatchable in practice. Split on statement
+ * separators and let any complete statement stand for itself.
+ *
+ * Safety does not rest on this: `secret_exposure` and `destructive` are still
+ * judged on the whole command first, and the gate documents that it is not a
+ * defence against an adversarial agent.
+ */
+export function isAuthorizedMatch(command: string, entries: readonly string[]): boolean {
+  if (entries.length === 0) return false
+  const statements = command
+    .split(/\s*(?:;|&&|\|\||\n)\s*/)
+    // A statement arrives with its own redirections and pipes attached
+    // (`git push origin main 2>&1 | Select-Object -Last 3`); drop those tails
+    // so the command itself is what gets compared.
+    .map((statement) => statement.split(/\s*(?:\||>>|>|2>)\s*/)[0])
+    .map((statement) => statement.trim().replace(/\s+/g, ' '))
+    .filter((statement) => statement !== '')
+  const wanted = entries.map((entry) => entry.trim().replace(/\s+/g, ' '))
+  return statements.some((statement) => wanted.includes(statement))
+}
+
 function policyFrom(config: Record<string, unknown>): Policy {
   // The profile entry (the settings card writes it) is the only source; an
   // absent key falls back to the built-in default. There is deliberately no
@@ -971,7 +998,7 @@ export const Config = z.object({
     .default([...DEFAULT_EXEMPT_PREFIXES])
     .volatile(),
   authorizedOperations: z.array(z.string())
-    .description('Exact commands whose external-irreversible ask is downgraded to allow, so a pre-approved irreversible step does not ask every run. Whole-command match only, and it never downgrades a secret-exposure or destructive verdict. Empty disables it.')
+    .description('Exact commands whose external-irreversible ask is downgraded to allow, so a pre-approved irreversible step does not ask every run. Statement-level match, and it never downgrades a secret-exposure or destructive verdict. Empty disables it.')
     .default([])
     .volatile(),
 })
@@ -1061,11 +1088,7 @@ export function apply(ctx: Context, rawConfig: unknown): void {
    * surrounding text keeps its own verdict. Mirrors `is_authorized` in
    * policy.py.
    */
-  const isAuthorized = (command: string, entries: readonly string[]): boolean => {
-    if (entries.length === 0) return false
-    const normalized = command.trim().replace(/\s+/g, ' ')
-    return entries.some((entry) => entry.trim().replace(/\s+/g, ' ') === normalized)
-  }
+  const isAuthorized = isAuthorizedMatch
   const watchMatcher = (): RegExp | null => {
     const source = configValue(config.matcher)
     const next = typeof source === 'string' && source !== '' ? source : DEFAULT_MATCHER

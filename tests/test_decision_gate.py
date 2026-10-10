@@ -132,13 +132,32 @@ def test_an_empty_authorization_list_never_matches() -> None:
     assert decision_gate.is_authorized("git push origin main", []) is False
 
 
-def test_authorization_matches_the_whole_command_only() -> None:
+def test_authorization_matches_a_whole_statement() -> None:
     entries = ["git push origin main"]
     assert decision_gate.is_authorized("git push origin main", entries) is True
     assert decision_gate.is_authorized("  git   push   origin main  ", entries) is True
+    # wrapped the way a shell call actually arrives -- the case that made
+    # whole-command equality unusable in practice
+    assert (
+        decision_gate.is_authorized(
+            "Set-Location 'E:/workspace/x'\ngit push origin main 2>&1 | Select-Object -Last 3",
+            entries,
+        )
+        is True
+    )
+    assert decision_gate.is_authorized("cd /tmp && git push origin main", entries) is True
+    # a different command is still a different command
     assert decision_gate.is_authorized("git push origin main --force", entries) is False
-    assert decision_gate.is_authorized("echo hi && git push origin main", entries) is False
     assert decision_gate.is_authorized("git push origin feature", entries) is False
+    assert decision_gate.is_authorized("git pull origin main", entries) is False
+
+
+def test_authorization_answers_only_about_the_approved_step() -> None:
+    # The whitelist answers "may this approved step run", never "is this whole
+    # script safe". The dangerous half of a compound command is denied by the
+    # secret_exposure / destructive rules before this is ever consulted.
+    assert decision_gate.is_authorized("echo hi && git push origin main", ["git push origin main"]) is True
+    assert decision_gate.is_authorized("echo hi", ["git push origin main"]) is False
 def test_a_weak_read_signal_does_not_allow() -> None:
     assert decide(signals(read_only=0.79)).action is Action.ASK
 
