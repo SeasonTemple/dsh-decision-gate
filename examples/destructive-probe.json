@@ -1,0 +1,14 @@
+{
+  "subject": "Payouts have been failing for 3 days",
+  "body": "Hi, every payout for the last 3 days comes back as 'payout failed'. I am losing sales right now. Please refund the processing fees charged on those failed payouts.",
+  "plan": "pro",
+  "country": "US",
+  "offline_judgments": {
+    "intent": "billing",
+    "intent_confidence": 0.91,
+    "urgency": 2.0,
+    "urgency_confidence": 0.84,
+    "security_risk": 0.04,
+    "wants_refund": 0.88
+  }
+}

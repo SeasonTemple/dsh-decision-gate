@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(bash|pwsh|terminal_)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "E:/workspace/muiltilab/.venv/Scripts/python.exe E:/workspace/dsh-decision-gate/hooks/decision_gate.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
