@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "C:/example/app/.venv/Scripts/python.exe C:/example/dsh-decision-gate/hooks/decision_gate.py",
+            "command": "python hooks/decision_gate.py",
             "timeout": 30
           }
         ]

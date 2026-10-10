@@ -1114,13 +1114,7 @@ export function apply(ctx: Context, rawConfig: unknown): void {
     authorizedOperations: configValue(config.authorizedOperations),
   })
 
-  /**
-   * Whole-command match against the pre-authorized list. The command text must
-   * equal an entry after whitespace normalization, so a whitelisted string
-   * carried inside a longer command (`curl … && git push`) never matches — the
-   * surrounding text keeps its own verdict. Mirrors `is_authorized` in
-   * policy.py.
-   */
+  /** Statement-level match; see {@link isAuthorizedMatch} for the rules. */
   const isAuthorized = isAuthorizedMatch
   const watchMatcher = (): RegExp | null => {
     const source = configValue(config.matcher)

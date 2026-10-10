@@ -185,16 +185,32 @@
 
 27. 工作区 `node_modules` 只装了运行时依赖。跑 `npm run typecheck` / `build` 前先
     `npm install`（typescript、@types/node 是 devDependencies）。
+28. **编译后必须验证产物，不能只看出退码。** 今天一整天的“tsc 通过”是假的：
+    `& tsc ... | Select-Object` 在 PowerShell 里根本不会执行外部脚本，而
+    `$LASTEXITCODE` 为空被当成了 0，于是 `lib/index.js` 停在上一个构建数小时，中间
+    所有测试结果都来自旧代码。**正确做法**：`& node <tsc.js 路径> -p tsconfig.json`
+    直接跑，然后核对产物的 `LastWriteTime` 和内容（`Select-String` 找新符号），
+    两者都对才叫编译过。
 
+29. **测试必须用生产里真实失败的那个字符串，不是它的近似值。** 今天三个 bug 全是
+    “测试全绿、真实不生效”，因为测试一直喂自己想象中输入框。直到用被拒调用的
+    **原样命令**驱动插件，才第一次看到 `false`。看到一个失败输入时，把它逐字抄进
+    测试，不要凭记忆重打。
+
+30. **改动超过十行就先读后写、改完立即编译。** 今天用行号操作把 `src/index.ts`
+    从 1178 行毁成 1 行，因为我在脑子里假设文件状态而没有核对。大改动前先读目标
+    区域，改完立刻 `tsc` + 跑测试，不要攒着继续改。
+
+31. **本文件不进包**：它是给改这个插件的人看的，装插件的人只需要 README。
 28. `tests/functional.mjs` 要写 `runtime/`。如果所在会话的沙箱只给工作区根目录写
     权限，它会在开头的 `rmSync` 上 EPERM——那是环境限制，不是测试或代码的问题。
 
-29. **本文件不进包**：它是给改这个插件的人看的，装插件的人只需要 README。
+32. **本文件不进包**：它是给改这个插件的人看的，装插件的人只需要 README。
 
-30. **`authorizedOperations` 是唯一的“免问”通道，别的地方不许开。** 它只把
-    `external_irreversible` 的 ask 降级为 allow，且必须整条命令精确匹配。改这块时
-    守住两条不变量：`secret_exposure` 和 `destructive` 的判定必须排在它前面（白名单
-    洗不白任何东西），匹配必须全等而非正则（正则白名单必然被写宽）。
+33. **`authorizedOperations` 是唯一的“免问”通道，别的地方不许开。** 它只把
+    `external_irreversible` 的 ask 降级为 allow，按语句匹配。改这块时守住两条
+    不变量：`secret_exposure` 和 `destructive` 的判定必须排在它前面（白名单洗不白
+    任何东西），匹配必须是“拆语句 + 剥定位外壳”而非正则（正则白名单必然被写宽）。
     `src/index.ts` 的 `decide`、`hooks/policy.py` 的 `decide`、两边的
     `isAuthorized` / `is_authorized` 是同一逻辑的四份镜像，改一处就改四处，然后跑
     parity 的 `authorization:` 段和 functional 的第 11 组。

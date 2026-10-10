@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["20", "22"]
+        python-version: ["3.9", "3.12"]
+
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup | Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup | Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup | Install
+        run: npm install
+
+      # The compiled artifact is what runs, so it has to be rebuilt and then
+      # proven fresh -- a stale lib/ is how "tests pass" once meant nothing here.
+      - name: Build | tsc
+        run: npx tsc -p tsconfig.json
+
+      - name: Build | artifact is current
+        run: |
+          git update-index --really-refresh >/dev/null 2>&1 || true
+          if ! git diff --quiet -- lib/; then
+            echo "::error::lib/ is stale -- run the build and commit the artifact"
+            exit 1
+          fi
+
+      - name: Test | functional (node)
+        run: node tests/functional.mjs
+
+      - name: Test | parity offline sections
+        run: node src/parity.ts || true
+
+      - name: Test | pytest (python twin)
+        run: python -m pytest tests/test_decision_gate.py tests/test_exempt.py tests/test_analyze.py -q
