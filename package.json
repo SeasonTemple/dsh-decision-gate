@@ -1,6 +1,6 @@
 {
   "name": "dsh-decision-gate",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "DSH PreToolUse gate: asks TypeSafe's Jev what kind of operation a tool call is and allows, asks, or denies it, with a path-scoped exemption that downgrades destructive denies to asks inside scratch prefixes.",
   "type": "module",
   "main": "lib/index.js",

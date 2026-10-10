@@ -190,3 +190,11 @@
     权限，它会在开头的 `rmSync` 上 EPERM——那是环境限制，不是测试或代码的问题。
 
 29. **本文件不进包**：它是给改这个插件的人看的，装插件的人只需要 README。
+
+30. **`authorizedOperations` 是唯一的“免问”通道，别的地方不许开。** 它只把
+    `external_irreversible` 的 ask 降级为 allow，且必须整条命令精确匹配。改这块时
+    守住两条不变量：`secret_exposure` 和 `destructive` 的判定必须排在它前面（白名单
+    洗不白任何东西），匹配必须全等而非正则（正则白名单必然被写宽）。
+    `src/index.ts` 的 `decide`、`hooks/policy.py` 的 `decide`、两边的
+    `isAuthorized` / `is_authorized` 是同一逻辑的四份镜像，改一处就改四处，然后跑
+    parity 的 `authorization:` 段和 functional 的第 11 组。

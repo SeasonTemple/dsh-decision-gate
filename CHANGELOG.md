@@ -4,6 +4,36 @@ All notable changes to this project are documented here. The project uses
 semantic versioning; the version in `package.json` and `dsh.plugin.json` is
 authoritative.
 
+## [1.4.0] - 2026-10-10
+
+### Added
+
+- **Pre-authorized irreversible operations** (`authorizedOperations`): a list of
+  exact commands whose `external_irreversible` ask is downgraded to allow. It
+  exists for one friction the exemption cannot reach — an irreversible step a
+  person has already agreed to (`git push origin main` after approving a public
+  repo) still asked on every run, because the gate has no notion of context.
+  Matched rows log `authorized: true` under the rule `authorized_external`, so
+  every waived irreversible step stays auditable. Default `[]`, so behavior is
+  unchanged until configured. The Python twin reads the same list from
+  `DECISION_GATE_AUTHORIZED_OPERATIONS`.
+
+### Notes
+
+- The whitelist is deliberately narrow, and both limits are load-bearing:
+  matching is **whole-command equality** after whitespace normalization (a
+  whitelisted string inside `echo hi && git push origin main` never matches, so
+  the surrounding text keeps its own verdict — a regex whitelist would be
+  widened in practice), and it only ever downgrades the
+  `external_irreversible` rule. `secret_exposure` and `destructive` are
+  evaluated first, so the whitelist cannot launder a command that also leaks
+  secrets or destroys data.
+- Verified: `node tests/functional.mjs` 0 failures (22 cases, 4 of them new:
+  authorized allows, unlisted still asks, whitelisted string inside a longer
+  command does not match, authorization never launders a secret verdict),
+  `pytest` 126 passed, `node src/parity.ts` offline sections clean
+  (`authorization: 4 decision rules, failures: 0`).
+
 ## [1.3.0] - 2026-10-09
 
 ### Changed

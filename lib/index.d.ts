@@ -55,6 +55,7 @@ export interface Policy {
     readonly read_only: number;
     readonly routine_dev: number;
     readonly exemptPrefixes: readonly string[];
+    readonly authorizedOperations: readonly string[];
 }
 export interface Decision {
     readonly action: Action;
@@ -65,7 +66,7 @@ export interface Decision {
 export declare const DEFAULT_EXEMPT_PREFIXES: readonly string[];
 export declare const DEFAULT_POLICY: Policy;
 /** Ordered exactly as `decide` in policy.py, so the first match wins the same way. */
-export declare function decide(signals: Signals, policy?: Policy, exempt?: boolean): Decision;
+export declare function decide(signals: Signals, policy?: Policy, exempt?: boolean, authorized?: boolean): Decision;
 /** Every path the command would create, overwrite, move, or delete. */
 export declare function writeTargets(command: string): string[];
 /** True only when every write target of the command sits inside a prefix. */
@@ -144,6 +145,8 @@ export interface Config {
     routineDev?: number;
     /** Path prefixes where a destructive verdict is downgraded to ask. */
     exemptPrefixes?: string[];
+    /** Exact commands whose external-irreversible ask is downgraded to allow. */
+    authorizedOperations?: string[];
 }
 export declare const Config: z<Schemastery.ObjectS<NoInfer<{
     judgeProvider: z<"dsh-llm" | "typesafe", "dsh-llm" | "typesafe", "volatile-defined">;
@@ -166,6 +169,7 @@ export declare const Config: z<Schemastery.ObjectS<NoInfer<{
     readOnly: z<number, number, "volatile-defined">;
     routineDev: z<number, number, "volatile-defined">;
     exemptPrefixes: z<NoInfer<string[]>, NoInfer<string[]>, "volatile-defined">;
+    authorizedOperations: z<NoInfer<string[]>, NoInfer<string[]>, "volatile-defined">;
 }>>, Schemastery.ObjectT<NoInfer<{
     judgeProvider: z<"dsh-llm" | "typesafe", "dsh-llm" | "typesafe", "volatile-defined">;
     model: z<string, string, "volatile-defined">;
@@ -187,6 +191,7 @@ export declare const Config: z<Schemastery.ObjectS<NoInfer<{
     readOnly: z<number, number, "volatile-defined">;
     routineDev: z<number, number, "volatile-defined">;
     exemptPrefixes: z<NoInfer<string[]>, NoInfer<string[]>, "volatile-defined">;
+    authorizedOperations: z<NoInfer<string[]>, NoInfer<string[]>, "volatile-defined">;
 }>>, "plain">;
 export declare const name = "decision-gate";
 export declare const inject: string[];

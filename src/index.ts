@@ -89,6 +89,9 @@ export interface Policy {
   // Path prefixes where a destructive verdict is downgraded to ask instead of
   // denied. Mirrors `Policy.exempt_prefixes` in policy.py.
   readonly exemptPrefixes: readonly string[]
+  // Exact commands whose external-irreversible ask is downgraded to allow.
+  // Mirrors `Policy.authorized_operations` in policy.py.
+  readonly authorizedOperations: readonly string[]
 }
 
 export interface Decision {
@@ -107,10 +110,16 @@ export const DEFAULT_POLICY: Policy = {
   read_only: 0.80,
   routine_dev: 0.75,
   exemptPrefixes: DEFAULT_EXEMPT_PREFIXES,
+  authorizedOperations: [],
 }
 
 /** Ordered exactly as `decide` in policy.py, so the first match wins the same way. */
-export function decide(signals: Signals, policy: Policy = DEFAULT_POLICY, exempt = false): Decision {
+export function decide(
+  signals: Signals,
+  policy: Policy = DEFAULT_POLICY,
+  exempt = false,
+  authorized = false,
+): Decision {
   const at = (value: number): string => value.toFixed(2)
   if (signals.secret_exposure >= policy.secret_exposure) {
     return {
@@ -140,6 +149,17 @@ export function decide(signals: Signals, policy: Policy = DEFAULT_POLICY, exempt
     }
   }
   if (signals.external_irreversible >= policy.external_irreversible) {
+    // A pre-authorized command skips only this one question. The checks above
+    // have already run, so a command that also exposes secrets or destroys data
+    // was denied before reaching here -- the whitelist cannot launder it, and a
+    // whitelisted string that is not the whole command simply never matches.
+    if (authorized) {
+      return {
+        action: 'allow',
+        rule: 'authorized_external',
+        reason: `changes state outside this machine, but the command is pre-authorized (p=${at(signals.external_irreversible)})`,
+      }
+    }
     return {
       action: 'ask',
       rule: 'external_irreversible',
@@ -821,6 +841,10 @@ function policyFrom(config: Record<string, unknown>): Policy {
   const exemptPrefixes = Array.isArray(fromConfig) && fromConfig.every(item => typeof item === 'string')
     ? (fromConfig as string[])
     : DEFAULT_EXEMPT_PREFIXES
+  const fromAuthorized = config.authorizedOperations
+  const authorizedOperations = Array.isArray(fromAuthorized) && fromAuthorized.every(item => typeof item === 'string')
+    ? (fromAuthorized as string[]).filter(item => item.trim() !== '')
+    : []
   return {
     destructive: pick('destructive', DEFAULT_POLICY.destructive),
     secret_exposure: pick('secretExposure', DEFAULT_POLICY.secret_exposure),
@@ -828,6 +852,7 @@ function policyFrom(config: Record<string, unknown>): Policy {
     read_only: pick('readOnly', DEFAULT_POLICY.read_only),
     routine_dev: pick('routineDev', DEFAULT_POLICY.routine_dev),
     exemptPrefixes,
+    authorizedOperations,
   }
 }
 
@@ -864,6 +889,8 @@ export interface Config {
   routineDev?: number
   /** Path prefixes where a destructive verdict is downgraded to ask. */
   exemptPrefixes?: string[]
+  /** Exact commands whose external-irreversible ask is downgraded to allow. */
+  authorizedOperations?: string[]
 }
 
 // No `z<Config>` annotation: `.volatile()` brands the projected value type, so
@@ -935,6 +962,10 @@ export const Config = z.object({
   exemptPrefixes: z.array(z.string())
     .description('Path prefixes where a destructive verdict downgrades to ask; an empty array disables the exemption.')
     .default([...DEFAULT_EXEMPT_PREFIXES])
+    .volatile(),
+  authorizedOperations: z.array(z.string())
+    .description('Exact commands whose external-irreversible ask is downgraded to allow, so a pre-approved irreversible step does not ask every run. Whole-command match only, and it never downgrades a secret-exposure or destructive verdict. Empty disables it.')
+    .default([])
     .volatile(),
 })
 
@@ -1013,7 +1044,21 @@ export function apply(ctx: Context, rawConfig: unknown): void {
     readOnly: configValue(config.readOnly),
     routineDev: configValue(config.routineDev),
     exemptPrefixes: configValue(config.exemptPrefixes),
+    authorizedOperations: configValue(config.authorizedOperations),
   })
+
+  /**
+   * Whole-command match against the pre-authorized list. The command text must
+   * equal an entry after whitespace normalization, so a whitelisted string
+   * carried inside a longer command (`curl … && git push`) never matches — the
+   * surrounding text keeps its own verdict. Mirrors `is_authorized` in
+   * policy.py.
+   */
+  const isAuthorized = (command: string, entries: readonly string[]): boolean => {
+    if (entries.length === 0) return false
+    const normalized = command.trim().replace(/\s+/g, ' ')
+    return entries.some((entry) => entry.trim().replace(/\s+/g, ' ') === normalized)
+  }
   const watchMatcher = (): RegExp | null => {
     const source = configValue(config.matcher)
     const next = typeof source === 'string' && source !== '' ? source : DEFAULT_MATCHER
@@ -1094,11 +1139,18 @@ export function apply(ctx: Context, rawConfig: unknown): void {
           const exempt = typeof command === 'string'
             ? isExempt(command, policy.exemptPrefixes, sessionCwd(exec))
             : false
-          const decision = decide(signals, policy, exempt)
+          // Whole-command match against the pre-authorized list: the command
+          // text must equal an entry after whitespace normalization, so a
+          // whitelisted string carried inside a longer command never matches.
+          const authorized = typeof command === 'string'
+            ? isAuthorized(command, policy.authorizedOperations)
+            : false
+          const decision = decide(signals, policy, exempt, authorized)
           record.signals = signals
           record.action = decision.action
           record.rule = decision.rule
           if (exempt) record.exempt = true
+          if (authorized) record.authorized = true
           record.duration_ms = Date.now() - started
           appendLog(record, logPath())
 

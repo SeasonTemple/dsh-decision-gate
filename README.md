@@ -127,6 +127,7 @@ Config keys (profile `cordis.patch.yml`), all optional:
 | `readOnly` | `0.80` |
 | `routineDev` | `0.75` |
 | `exemptPrefixes` | `['.agent-scratch']` |
+| `authorizedOperations` | `[]` — exact commands whose external-irreversible ask is downgraded to allow |
 
 Auth: the `dsh-llm` backend needs no extra credential — it rides on the
 credentials DSH already resolved for the session's provider. The `typesafe`
