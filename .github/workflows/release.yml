@@ -24,6 +24,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: npm install
+      - run: python -m pip install pytest
       - run: npx tsc -p tsconfig.json
       # 编译产物必须与源码一致，否则发布出去的是旧代码。
       - run: |

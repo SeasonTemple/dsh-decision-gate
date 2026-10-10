@@ -34,6 +34,9 @@ jobs:
       - name: Setup | Install
         run: npm install
 
+      - name: Setup | Python test dependency
+        run: python -m pip install pytest
+
       # The compiled artifact is what runs, so it has to be rebuilt and then
       # proven fresh -- a stale lib/ is how "tests pass" once meant nothing here.
       - name: Build | tsc
