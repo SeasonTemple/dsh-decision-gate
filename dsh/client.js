@@ -258,7 +258,13 @@ window.__ModuleLoader__.load({
       react.useEffect(() => {
         var alive = true;
         var load = () => {
-          remote.session.modelCatalog().then((response) => {
+          // The catalog is an enhancement: pickers fall back to text inputs when
+          // it cannot be read, so a missing `remote.session` must degrade rather
+          // than throw inside the effect.
+          var call = remote.session && typeof remote.session.modelCatalog === 'function'
+            ? remote.session.modelCatalog()
+            : Promise.reject(new Error('no model catalog on this host'));
+          call.then((response) => {
             if (!alive) return;
             setCatalog(response.ok
               ? { groups: response.value.groups || [], status: 'ready' }
@@ -427,7 +433,36 @@ window.__ModuleLoader__.load({
         react = require('react');
         ui = require('@deepseek-ai/dsh-client-ui-primitives');
       } catch (error) {
+        // A card that cannot load must say so. Returning silently here is how
+        // 0.4.0 shipped a settings page that simply was not there: one
+        // console.error, no visible trace, and a README promising a form.
         console.error(`[decision-gate] settings card skipped: ${error}`);
+        var reason = String(error && error.message ? error.message : error);
+        var notice = function () {
+          return react && react.createElement
+            ? react.createElement('pre', { style: { padding: '12px', whiteSpace: 'pre-wrap' } },
+                'decision-gate: the settings card could not load, so configuration '
+                + 'happens only through this profile\'s cordis.patch.yml.\n\n'
+                + reason)
+            : null;
+        };
+        notice.displayName = 'DecisionGateCardError';
+        notice.__decisionGateError = reason;
+        exports.__cardError = reason;
+        ctx.slots.inject('settings.plugins.tab', function* () {
+          yield ctx.slots.register({
+            name: 'settings.plugins.tab',
+            id: 'decision-gate-config',
+            order: 30,
+            label: function () { return 'decision-gate（加载失败）' },
+          }, notice);
+        });
+        ctx.slots.inject('plugins.bundle.config', function* () {
+          yield ctx.slots.register({
+            name: 'plugins.bundle.config',
+            key: PACKAGE_NAME,
+          }, notice);
+        });
         return;
       }
       // The shared per-entry configuration form. The namespace is the profile
@@ -457,17 +492,16 @@ window.__ModuleLoader__.load({
     }
 
     function apply(ctx) {
-      // configForms, slots, and remote are optional services, so none is
-      // required at the top level: mountCard takes them on its own scoped
-      // inject, and a host that never provides one simply never fills that
-      // slot.
-      ctx.inject(['slots', 'configForms', 'remote', 'remote.session'], (scope) => {
-        mountCard(scope);
-      });
+      // These three are REQUIRED, declared at the top level like
+      // dsh-liangshen's client does. Treating them as optional is what made the
+      // card vanish without a trace: a scoped inject whose names do not all
+      // resolve never fires its callback, so the card simply never mounted and
+      // nothing reported it.
+      mountCard(ctx);
     }
 
     exports.name = 'dsh-decision-gate-client';
-    exports.inject = [];
+    exports.inject = ['slots', 'configForms', 'remote'];
     exports.apply = apply;
     return module.exports;
   },
