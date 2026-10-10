@@ -501,10 +501,18 @@ def test_matcher_is_read_as_a_regex_not_a_literal_list() -> None:
 def test_hooks_config_command_points_at_the_gate_script() -> None:
     config = json.loads((HOOKS_DIR / "hooks.json").read_text(encoding="utf-8"))
     command = config["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
-    resolved = {Path(token).resolve() for token in command.split() if Path(token).exists()}
-    assert (HOOKS_DIR / "decision_gate.py").resolve() in resolved
-    assert any(path.name.startswith("python") for path in resolved)
-
+    tokens = command.split()
+    # The script must be named, and reachable from the repo root -- a hook
+    # runner's cwd is the project, so an absolute path here would only ever be
+    # correct on the machine that wrote it.
+    assert any(token.endswith("decision_gate.py") for token in tokens)
+    assert not any(token.startswith(("/", "C:", "E:")) for token in tokens), (
+        "an absolute path in hooks.json only works on the machine that wrote it"
+    )
+    # The interpreter is named, not pathed: `python` resolves from PATH.
+    assert tokens[0] == "python"
+    # ...and the script path is repo-relative, so the pair resolves from the root.
+    assert tokens[1] == "hooks/decision_gate.py"
 
 def test_hooks_config_leaves_room_for_the_whole_retry_budget() -> None:
     config = json.loads((HOOKS_DIR / "hooks.json").read_text(encoding="utf-8"))

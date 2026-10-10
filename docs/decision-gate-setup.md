@@ -291,9 +291,13 @@ cwd 之内的路径。还有一类摩擦它管不到：**已经和人确认过�
 
 三条边界，逐条都是设计约束而不是疏漏：
 
-1. **整条命令精确匹配**（空白规范化后全等）。`git push origin main --force`、
-   `echo hi && git push origin main` 都不命中——白名单条目被包在更长命令里时，外层命令
-   保留自己的判定。用正则白名单在实践中几乎必然被写宽，所以只做全等。
+1. **按语句匹配，且剥掉“只说明在哪里运行”的外壳**。命令先按 `;` `&&` `||`
+   换行拆成语句，每条语句剥掉管道左侧的部分和尾部重定向，再剥掉行首的
+   `cd`/`Set-Location` 和 `git -C <路径>` 这类定位参数——因为预授权
+   `git push origin main` 的人无法预料 shell 调用外面会包着什么。所以
+   `Set-Location 'E:/x'` + `git push origin main 2>&1 | Select-Object -Last 3`
+   命中，而 `git push origin main --force`、`git push origin feature` 不命中。
+   用正则白名单在实践中几乎必然被写宽，所以不做正则。
 2. **只降级 `external_irreversible` 这一条规则**。`secret_exposure` 和 `destructive`
    的判定排在它前面，所以同时泄密或破坏数据的命令在到达这条之前就已经 deny——
    白名单洗不白任何东西。
