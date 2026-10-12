@@ -538,7 +538,7 @@ hook 版留着不是废物：它是 `src/parity.ts` 的**基线**。`parity.ts` 
 `pluginRoot` 设为仓库绝对路径，命令改为
 `python ${CLAUDE_PLUGIN_ROOT}/hooks/decision_gate.py`。第二台机器若是
 Linux/macOS，还要注意 `python` 可能只有 `python3`。
-- **本机实测（2026-10-12，模拟桥接 spawn，未注册）**：payload 解析、密钥经 Windows 用户注册表回退解析成功、裁判请求发出、按 Claude Code 协议输出、fail-open 兜底——全程正确。但本机直连裁判端返回 451（区域封锁）：插件版靠 profile 里钉的代理绕行，而 hook 脚本没有代理通道、生产子进程的环境变量又被剥——**在需要代理的网络上，hook 版会永久 fail-open**（闸门静默不存在，只有日志里的 error 行）。直连可达的网络无此问题。
+- **本机实测（2026-10-12，模拟桥接 spawn，未注册）**：payload 解析、密钥经 Windows 用户注册表回退、Claude Code 协议输出、fail-open 兜底全部正确；把代理放进环境变量后，裁判请求返回真实判定（allow，read_only p=0.97）——live path 完整通过，urllib 本身认 `HTTP_PROXY`/`HTTPS_PROXY`。生产形态下断点在通道不在脚本：代理值只存在于 DSH profile 的 patch 行（脚本读不到）；桥接层给 hook 子进程的 env 仅 `CLAUDE_PROJECT_DIR` 一项（Node spawn 的 env 是整体替换而非合并），机器级代理变量同样进不去。**需要代理的网络里，hook 子进程只能直连，遇区域封锁即永久 fail-open**。直连可达的网络无此问题；要修就得给脚本一个不依赖环境变量的代理通道（本地配置文件或注册表，值不进仓库）。
 
 ---
 
