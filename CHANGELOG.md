@@ -62,9 +62,8 @@ authoritative.
 
 ### Notes
 
-- The `v1.4.0` tag and GitHub Release still exist. Deleting them needs `gh`,
-  which this environment cannot reach for that command; the reset is recorded
-  here so the history stays honest either way.
+- The `v1.4.0` tag and GitHub Release were deleted once `gh` became reachable
+  again. The reset is recorded here so the history stays honest either way.
 
 ## [1.4.0] - 2026-10-10
 
