@@ -538,6 +538,7 @@ hook 版留着不是废物：它是 `src/parity.ts` 的**基线**。`parity.ts` 
 `pluginRoot` 设为仓库绝对路径，命令改为
 `python ${CLAUDE_PLUGIN_ROOT}/hooks/decision_gate.py`。第二台机器若是
 Linux/macOS，还要注意 `python` 可能只有 `python3`。
+- **本机实测（2026-10-12，模拟桥接 spawn，未注册）**：payload 解析、密钥经 Windows 用户注册表回退解析成功、裁判请求发出、按 Claude Code 协议输出、fail-open 兜底——全程正确。但本机直连裁判端返回 451（区域封锁）：插件版靠 profile 里钉的代理绕行，而 hook 脚本没有代理通道、生产子进程的环境变量又被剥——**在需要代理的网络上，hook 版会永久 fail-open**（闸门静默不存在，只有日志里的 error 行）。直连可达的网络无此问题。
 
 ---
 
