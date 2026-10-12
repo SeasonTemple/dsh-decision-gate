@@ -607,3 +607,16 @@ noul-triage 功能，import 它的 `muiltilab` 包。`npm run test:py` 因此只
   error 行。所以 `node tools/observe.mjs` 的 “judge errors” 计数是必看项，不是
   可选项。
 - 附带教训：依赖装上 ≠ 启用。bundle 选中那一步漏掉时同样静默，表象是日志不长。
+
+**2026-10-12（unclear 归因：复合命令是最大单一来源）**
+
+- unclear 占 21%（10-10 起 339 条中 70 条），其中 **54 条（77%）是复合命令**
+  （含 `;`/`&&`/`||`/`|`/换行）——裁判对每个问题都给出中间概率，无一过阈值。
+  10-08 复盘“信号噪声而非阈值位置”的判断由此量化。
+- 但 unclear 组平均 read_only 仅 0.16（allow 组 0.70）：这些命令本身多是读写混合
+  （robocopy 拷贝、`git rm`、写临时脚本再跑），ask 是正确答案，不是误伤——
+  “降低 ask 率”不等于“改善”。
+- 结论：阈值、prompt 都不动。唯一原则性修法是语句级拆分后按问题逻辑合并
+  （read_only 用 AND、危险信号用 OR），代价是 shell 安全拆分（日志里大量
+  heredoc/if 块）、裁判调用 ×N、parity 面扩大。列 v0.6 candidate，与「CI 无
+  key、无法重放裁判」这个已知限制绑定后再做。
