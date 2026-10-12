@@ -518,6 +518,27 @@ hook 版留着不是废物：它是 `src/parity.ts` 的**基线**。`parity.ts` 
 
 所以以后的规矩是：**改判定逻辑要同时改两处，然后跑 `node src/parity.ts`。**
 
+### hook 版的运行契约（2026-10-12 验证）
+
+不需要第二台机器——直接读 DSH 0.2.0-rc.2 自带的 hook 运行器（app.asar 内的
+`@deepseek-ai/dsh-hooks-claude-code`）确认：
+
+- **cwd 是会话工作区**：hook 命令以会话工作区为工作目录执行。相对路径相对的是
+  会话所在的工作区，不是 DSH 的启动目录，也不一定是这个仓库。
+- **配置是进程级全场**：一个 hooks.json 注册后，机器上所有会话的所有工作区都会
+  触发它。
+- **失败是静默的**：hook 跑不起来只记一行日志，agent 继续跑——和插件加载失败
+  同一个失败形状，所以装完必须验。
+- **替换变量**：`${CLAUDE_PLUGIN_ROOT}` / `${CLAUDE_PROJECT_DIR}`（名字继承自
+  Claude Code 的 hook 格式，DSH 桥接层原样实现）。前者取自桥接配置的
+  `pluginRoot` 字段，不自动推导；未设置时原样保留。
+
+结论：`python hooks/decision_gate.py` 在“会话工作区 = 本仓库”时正确——这正是这份
+参考实现的既定安装语境。要让 hook 版对其他工作区也生效：在使用方的桥接配置里把
+`pluginRoot` 设为仓库绝对路径，命令改为
+`python ${CLAUDE_PLUGIN_ROOT}/hooks/decision_gate.py`。第二台机器若是
+Linux/macOS，还要注意 `python` 可能只有 `python3`。
+
 ---
 
 ## 验证

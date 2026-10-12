@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The project uses
 semantic versioning; the version in `package.json` and `dsh.plugin.json` is
 authoritative.
 
+## [Unreleased]
+
+### Docs
+
+- **`hooks/hooks.json` portability is verified, and its boundary is now
+  recorded.** The hook runner shipped inside DeepSeek Harness 0.2.0-rc.2
+  (`@deepseek-ai/dsh-hooks-claude-code`, read out of the app archive) settles
+  it without a second machine: command hooks spawn with the cwd of the agent
+  session's workspace, so the repo-relative `python hooks/decision_gate.py`
+  resolves exactly as the 0.4.0 entry assumed. The same source states the two
+  conditions the 0.5.0 note never did: the bridge config is process-wide (one
+  registered `hooks.json` fires for every session on the machine), and a hook
+  that cannot run is logged and skipped while the agent continues. The file is
+  therefore correct for sessions whose workspace is this repo — the documented
+  install context for this reference implementation — and silently no-ops in
+  any other workspace. The setup doc now records this contract, including the
+  `${CLAUDE_PLUGIN_ROOT}` escape hatch for a machine-wide install. The
+  published file stays machine-neutral, as the 0.4.0 reset intended.
+
 ## [0.5.0] - 2026-10-10
 
 ### Fixed
