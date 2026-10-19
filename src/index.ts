@@ -736,12 +736,34 @@ export function resolveProxyAgent(configured = ''): Dispatcher | null {
   return null
 }
 
+/**
+ * Caller cancellation first, the request budget second: whichever fires
+ * first aborts the judge call. The RC's pre-execute contract asks async
+ * gates to observe `exec.signal` — a shell call the user cancelled must
+ * not wait out a 60s judge. A host that hands the gate an execution
+ * without a signal (an older RC, or the functional tests' fake exec)
+ * gets the budget alone, exactly as before.
+ */
+function judgeSignal(caller: AbortSignal | undefined): AbortSignal {
+  const controller = new AbortController()
+  const budget = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+  const forward = (source: AbortSignal): void => controller.abort(source.reason)
+  if (caller !== undefined) {
+    if (caller.aborted) forward(caller)
+    else caller.addEventListener('abort', () => forward(caller), { once: true })
+  }
+  if (budget.aborted) forward(budget)
+  else budget.addEventListener('abort', () => forward(budget), { once: true })
+  return controller.signal
+}
+
 /** Ask TypeSafe's SystemOne endpoint; the calibrated `noul` baseline. */
 async function judgeTypesafe(
   state: Record<string, unknown>,
   model: string,
   apiKey: string,
   agent: Dispatcher | null,
+  caller: AbortSignal | undefined,
 ): Promise<unknown> {
   if (apiKey === '') {
     throw new Error('no TypeSafe API key configured or in the environment')
@@ -758,7 +780,7 @@ async function judgeTypesafe(
         method: 'POST',
         headers,
         body,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: judgeSignal(caller),
         ...agent === null ? {} : { dispatcher: agent },
       })
       if (response.ok) return await response.json()
@@ -785,6 +807,7 @@ async function judgeDshLlm(
   ctx: Context,
   state: Record<string, unknown>,
   route: { provider: string; model: string },
+  caller: AbortSignal | undefined,
 ): Promise<Signals> {
   const options: GenerateOptions = {
     provider: route.provider,
@@ -795,7 +818,7 @@ async function judgeDshLlm(
       content: [{ type: 'text', text: buildJudgePrompt(state) }],
     }],
     temperature: 0,
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    signal: judgeSignal(caller),
   }
   let text = ''
   let finished = false
@@ -1177,7 +1200,7 @@ export function apply(ctx: Context, rawConfig: unknown): void {
           record.arguments = (state.tool_call as { arguments: unknown }).arguments
           let signals: Signals
           if (provider === 'typesafe') {
-            const body = await judgeTypesafe(state, model, typesafeKey(), resolveProxyAgent(typesafeProxy())) as { answers?: unknown }
+            const body = await judgeTypesafe(state, model, typesafeKey(), resolveProxyAgent(typesafeProxy()), exec.signal) as { answers?: unknown }
             if (body.answers === undefined) throw new Error('response carried no answers object')
             signals = toSignals(body.answers)
           } else {
@@ -1190,7 +1213,7 @@ export function apply(ctx: Context, rawConfig: unknown): void {
             signals = await judgeDshLlm(ctx, state, {
               provider: route.provider,
               model: model === '' ? route.model : model,
-            })
+            }, exec.signal)
           }
           const command = (exec.arguments as { command?: unknown } | undefined)?.command
           const exempt = typeof command === 'string'
