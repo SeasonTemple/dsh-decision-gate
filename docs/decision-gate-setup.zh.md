@@ -80,7 +80,16 @@ wc -l C:/example/dsh-decision-gate/runtime/decisions.jsonl
 
 不涨就是没装上。**失败是静默的**——插件加载失败、bundle 没选中、裁判被拒，
 全都只记日志，DSH 照常启动，闸门却不生效，所以装完必须验。最直观的验证是
-**故意触发一次 deny**——在 DSH 里让它跑：
+最直观的验证是**故意触发一次 deny**——在 DSH 里让它跑一条门禁必须拒绝的命令，
+例如：
+
+```bash
+psql -c 'DROP TABLE users'
+```
+
+（挑一条"万一真跑起来也无害"的命令——你测的正是闸门失效那个失败本身；无 postgres
+时这条执行起来也只是连接报错。）
+
 应当被拒，日志里对应一行 `"action":"deny","rule":"destructive"`。
 
 ### 卸载

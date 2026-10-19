@@ -90,7 +90,12 @@ wc -l C:/example/dsh-decision-gate/runtime/decisions.jsonl
 No growth means it is not installed. **Failure is silent** — plugin load failure, an
 unselected bundle, a rejected judge: all only log, DSH starts as usual, and the gate
 simply does not exist, so installing must be verified. The most direct check is to
-**deliberately trigger a deny** — in DSH, have it run:
+The most direct check is to **deliberately trigger a deny** — in DSH, have it run a
+command the gate must refuse, for example:
+
+```bash
+psql -c 'DROP TABLE users'
+```
 
 It should be refused, with a corresponding line
 `"action":"deny","rule":"destructive"` in the log.
