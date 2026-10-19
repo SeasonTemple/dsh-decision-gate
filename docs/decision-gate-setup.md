@@ -45,7 +45,7 @@ contract.
 ### CLI (web and other profiles)
 
 ```bash
-dsh plugin --profile web add C:/example/dsh-decision-gate
+dsh plugin --profile web add /path/to/dsh-decision-gate
 ```
 
 ### Desktop app
@@ -53,7 +53,7 @@ dsh plugin --profile web add C:/example/dsh-decision-gate
 By design the CLI **refuses to operate on the desktop profile**; the desktop does the
 same thing in-app:
 
-**Plugins page → Add plugin → local path `C:/example/dsh-decision-gate`**
+**Plugins page → Add plugin → local path `/path/to/dsh-decision-gate`**
 
 Both paths link the package into the profile and select the bundle; the runtime deps
 `@deepseek-ai/schemastery` and `undici` resolve from npm (the install `dsh plugin add`
@@ -69,7 +69,7 @@ grow. Check with:
 node -e "const d=require('C:/Users/<you>/.dsh/profiles/desktop/package.json');console.log(d.dependencies['dsh-decision-gate'], d.dependencies.profile.bundles.includes('dsh-decision-gate'))"
 ```
 
-Both should have values: the former `link:C:/example/dsh-decision-gate`, the latter
+Both should have values: the former `link:/path/to/dsh-decision-gate`, the latter
 `true`.
 
 ### Changes require a restart
@@ -84,7 +84,7 @@ by the Loader).
 Run a few shell commands, then check whether the log grew:
 
 ```bash
-wc -l C:/example/dsh-decision-gate/runtime/decisions.jsonl
+wc -l /path/to/dsh-decision-gate/runtime/decisions.jsonl
 ```
 
 No growth means it is not installed. **Failure is silent** — plugin load failure, an
@@ -127,7 +127,7 @@ Add a line pointing at `decision-gate` in the profile's `cordis.patch.yml`:
   config:
     judgeProvider: 'typesafe'
     matcher: '^(bash|pwsh|terminal_)'
-    logPath: 'C:/example/dsh-decision-gate/runtime/decisions.jsonl'
+    logPath: '/path/to/dsh-decision-gate/runtime/decisions.jsonl'
 ```
 
 **Why this line is usually needed**: the bundle-mounted line is not included by the

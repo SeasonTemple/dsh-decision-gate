@@ -41,14 +41,14 @@ profile**——这是 install-and-run 的契约。
 ### CLI（web 等 profile）
 
 ```bash
-dsh plugin --profile web add C:/example/dsh-decision-gate
+dsh plugin --profile web add /path/to/dsh-decision-gate
 ```
 
 ### 桌面应用
 
 CLI 按其设计**拒绝操作 desktop profile**，桌面端走应用内同样的事：
 
-**插件页 → 添加插件 → 本地路径 `C:/example/dsh-decision-gate`**
+**插件页 → 添加插件 → 本地路径 `/path/to/dsh-decision-gate`**
 
 两条路都是把包链接进 profile 并选中 bundle；运行时依赖
 `@deepseek-ai/schemastery` 与 `undici` 从 npm 解析（`dsh plugin add` 为
@@ -62,7 +62,7 @@ link 进 profile，还要把它的 bundle 勾选/启用，门禁才会被挂载�
 node -e "const d=require('C:/Users/<你>/.dsh/profiles/desktop/package.json');console.log(d.dependencies['dsh-decision-gate'], d.dsh.profile.bundles.includes('dsh-decision-gate'))"
 ```
 
-两个都该有值：前者是 `link:C:/example/dsh-decision-gate`，后者是 `true`。
+两个都该有值：前者是 `link:/path/to/dsh-decision-gate`，后者是 `true`。
 
 ### 改完必须重启
 
@@ -75,7 +75,7 @@ node -e "const d=require('C:/Users/<你>/.dsh/profiles/desktop/package.json');co
 跑几条 shell 命令，然后看日志有没有长：
 
 ```bash
-wc -l C:/example/dsh-decision-gate/runtime/decisions.jsonl
+wc -l /path/to/dsh-decision-gate/runtime/decisions.jsonl
 ```
 
 不涨就是没装上。**失败是静默的**——插件加载失败、bundle 没选中、裁判被拒，
@@ -117,7 +117,7 @@ dsh plugin --profile web remove dsh-decision-gate
   config:
     judgeProvider: 'typesafe'
     matcher: '^(bash|pwsh|terminal_)'
-    logPath: 'C:/example/dsh-decision-gate/runtime/decisions.jsonl'
+    logPath: '/path/to/dsh-decision-gate/runtime/decisions.jsonl'
 ```
 
 **为什么通常需要这一行**：bundle 挂载的行不是 profile 根 Include 所有，所以

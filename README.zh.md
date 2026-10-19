@@ -162,11 +162,11 @@ schema 运行时需要 `@deepseek-ai/schemastery`，按裸包名从插件自身�
 profile**：
 
 ```bash
-dsh plugin --profile web add C:/example/dsh-decision-gate
+dsh plugin --profile web add /path/to/dsh-decision-gate
 ```
 
 桌面端（CLI 按其设计拒绝操作 desktop profile）走应用内同样的事：**插件页 →
-添加插件 → 本地路径 `C:/example/dsh-decision-gate`**。两条路都是把包链接进 profile
+添加插件 → 本地路径 `/path/to/dsh-decision-gate`**。两条路都是把包链接进 profile
 并选中 bundle；运行时依赖 `@deepseek-ai/schemastery` 与 `undici` 从 npm 解析。
 
 重启 DSH（或桌面应用）即用，默认开档：校准的 TypeSafe 裁判

@@ -186,12 +186,12 @@ One command into any profile — the bundle's own patch mounts the gate, so
 there is no manual profile edit:
 
 ```bash
-dsh plugin --profile web add C:/example/dsh-decision-gate
+dsh plugin --profile web add /path/to/dsh-decision-gate
 ```
 
 On the desktop app (whose profile the CLI refuses by design), use the same
 source through the in-app Plugins page: **添加插件 → 本地路径 →
-`C:/example/dsh-decision-gate`**. Both routes link the package into the profile and
+`/path/to/dsh-decision-gate`**. Both routes link the package into the profile and
 select the bundle; the runtime dependencies `@deepseek-ai/schemastery` and
 `undici` resolve from npm.
 
