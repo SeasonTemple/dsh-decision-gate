@@ -26,6 +26,18 @@ The gate has no power to escalate anything. Its one job is to stop the session
 from silently doing something a person would not have wanted — and to stay out
 of the way otherwise.
 
+**Version compatibility.** Verified against DeepSeek Harness
+`0.2.1-rc.2` (the desktop RC): the in-process gate rides the
+`tools/pre-execute` seam that every RC since `0.2.0-rc.1` carries, and the
+supported range (`>=0.2.0-rc.1 <0.3.0-0`) is now declared in `package.json`
+`engines.dsh` — the field the harness's own plugin-compatibility gate
+reads, so an incompatible DSH skips this bundle loudly instead of loading
+it. The `hooks.json` form in this repo is the reference/regression twin,
+not the live gate; running it needs the optional
+`@deepseek-ai/dsh-hooks-claude-code` bridge, which the `0.2.1-rc.2`
+desktop build does not bundle (install it from the plugin market if you
+want that form). Requires Node >= 20.
+
 ---
 
 ## How it works

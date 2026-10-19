@@ -23,6 +23,16 @@ DSH（DeepSeek Harness）的 PreToolUse 门禁插件。在每个 shell 类工具
 
 这个门禁没有任何提权能力，只做一件事：阻止会话“悄悄做了人不会想做的事”，
 其余时候不碍事。
+
+**版本适配。** 已对 DeepSeek Harness `0.2.1-rc.2`（桌面 RC）逐项验证：
+进程内门禁挂在 `tools/pre-execute` 接缝上，`0.2.0-rc.1` 之后的每个 RC 都
+携带该接缝；支持范围（`>=0.2.0-rc.1 <0.3.0-0`）现在声明在 `package.json`
+的 `engines.dsh` 里——harness 自己的插件兼容门读的就是这个字段，版本不符
+时 bundle 会被显式跳过而不是带病加载。仓库里的 `hooks.json` 形态是参考实现
+和回归基线，不是活门禁；要跑它需要可选的
+`@deepseek-ai/dsh-hooks-claude-code` 桥接插件，`0.2.1-rc.2` 桌面版默认
+不打包（想用该形态就从插件市场装）。要求 Node >= 20。
+
 ---
 ## 工作原理
 
