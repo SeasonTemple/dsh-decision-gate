@@ -63,24 +63,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      # 发布说明是写出来的，不是生成出来的。docs/release-notes/<tag>.md 是
-      # 唯一真源；缺文件时保留自动 notes 并告警（exit 0），文件存在但取不到标题
-      # 时算质量门失败（exit 1）——发布路径上不许有静默降级。
-      - name: Publish | Curated release notes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="$(node -p "require('./package.json').version")"
-          TAG="v${VERSION}"
-          NOTE="docs/release-notes/${TAG}.md"
-          if [ ! -f "$NOTE" ]; then
-            echo "::warning::no curated note at $NOTE; falling back to auto-generated notes"
-            exit 0
-          fi
-          TITLE="$(python tools/release_notes.py title "$NOTE")"
-          echo "curated note: $NOTE"
-          echo "title: $TITLE"
-          gh release edit "$TAG" --notes-file "$NOTE" --title "$TITLE"
       # 版本号取自 package.json——它是唯一真源（见 AGENT.md 发布纪律第 17 条）。
       # tag 已存在则跳过，不覆盖已发布的版本。
       - name: Publish | GitHub Release with the tarball attached
@@ -97,3 +79,24 @@ jobs:
           gh release create "$TAG" "$TARBALL" \
             --title "$TAG" \
             --generate-notes
+
+      # 发布说明是写出来的，不是生成出来的。docs/release-notes/<tag>.md 是
+      # 唯一真源；缺文件时保留自动 notes 并告警（exit 0），文件存在但取不到标题
+      # 时算质量门失败（exit 1）——发布路径上不许有静默降级。
+      # 必须在 release 建好之后跑：gh release edit 对不存在的 release 直接失
+      # 败——这个顺序 bug 让 0.5.1 的首次发布红过一次（release not found）。
+      - name: Publish | Curated release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v${VERSION}"
+          NOTE="docs/release-notes/${TAG}.md"
+          if [ ! -f "$NOTE" ]; then
+            echo "::warning::no curated note at $NOTE; falling back to auto-generated notes"
+            exit 0
+          fi
+          TITLE="$(python tools/release_notes.py title "$NOTE")"
+          echo "curated note: $NOTE"
+          echo "title: $TITLE"
+          gh release edit "$TAG" --notes-file "$NOTE" --title "$TITLE"
