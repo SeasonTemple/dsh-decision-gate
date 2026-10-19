@@ -23,8 +23,17 @@ authoritative.
     (an absolute path) in install commands and examples with a
     `/path/to/dsh-decision-gate` placeholder — an absolute path is a deploy-local
     value (AGENT.md rule 16), and the docs already use `<you>` placeholders
-    elsewhere. Test fixtures and CHANGELOG history keep their paths on purpose:
-    the former are synthetic exemption-parser inputs, the latter is history.
+    elsewhere. The same scrub covers the test fixtures: `C:\example\muiltilab` and friends
+    become `C:\example\app`, with the inside/outside exemption relationships and
+    the coupled dispatch conditions that keyed on the old prefix updated to
+    match. Full suite green afterwards: pytest 127, functional, parity offline
+    sections, and the live replay 26/26 decisions with 0 mismatches. CHANGELOG
+    history keeps its entries - rule 15.
+  - parity's live replay now resolves its proxy the way the plugin does
+    (config → env → direct): it used a raw `fetch`, which ignores
+    `HTTP_PROXY`, so on a region-blocked machine the recorded-baseline replay
+    could never run at all. It now runs here through the proxy: 26/26
+    decisions, 0 mismatches.
 
 ## [0.5.1] - 2026-10-19
 
