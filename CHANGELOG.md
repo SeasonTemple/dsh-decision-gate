@@ -4,10 +4,57 @@ All notable changes to this project are documented here. The project uses
 semantic versioning; the version in `package.json` and `dsh.plugin.json` is
 authoritative.
 
-## [Unreleased]
+## [0.5.1] - 2026-10-19
+
+### Added
+
+- **The supported DSH range is now declared where the harness reads it.**
+  `package.json` gains `engines.dsh: ">=0.2.0-rc.1 <0.3.0-0"`. The desktop
+  RC's loader (`evaluatePluginCompatibility` in `@deepseek-ai/dsh-app-boot`)
+  reads only the bundle's `package.json` — an own `engines.dsh` decides
+  alone, otherwise every `@deepseek-ai/dsh*` peer range is checked against
+  the runtime — so the range that already lived in `dsh.plugin.json` (a file
+  no RC code reads) is now also authoritative for the loader. An
+  incompatible DSH skips this bundle with a loud, named error instead of
+  loading it; `dsh.plugin.json` keeps the same range for older harnesses.
+
+### Fixed
+
+- **The parity replay runs again.** `src/parity.ts` crashed with
+  `ReferenceError: isAuthorizedMatch is not defined` the moment the
+  exemption section handed off to the authorization section — the import
+  from `./index.ts` never listed the function `authorizedSection` calls, so
+  `npm run test:node` (and `npm run check`) have been red since the
+  statement-level matching fix (`0f8f1eb`, in the 1.4.0 line). All four
+  offline sections now run to completion: 30 exemption parser cases + 3
+  downgrade rules, 5 authorization decision rules + 3 match rules, 3 valid
+  + 9 rejected judge outputs, 8 accepted + 3 refused config shapes.
+- **A cancelled shell call no longer waits out the judge.** The gate is an
+  async `tools/pre-execute` listener, and the RC's contract for that seam
+  asks async gates to observe `exec.signal`; the judge call previously
+  watched only its own 60s budget, so a call the user cancelled sat out the
+  full judge before the registry applied the cancellation. Both judge
+  backends now abort on caller cancellation first, budget second. A host
+  execution without a signal (an older RC, or the functional tests' fake
+  exec) keeps the budget alone, exactly as before.
+
+### Changed
+
+- **The ambient host types were refreshed against the desktop RC
+  0.2.1-rc.2**, read out of the app archive: `cancel` joined
+  `PreToolDecision`, `deny.reason` became required, `ask` gained
+  `displayReason`, `ToolExecution` carries the caller `signal`, and
+  `finish` gained a `tool-calls` reason. No behavior change — the point is
+  that the next host change now fails the typecheck instead of drifting
+  silently. What the plugin never touches stays undescribed on purpose.
 
 ### Docs
 
+- **Both READMEs open with a version-compatibility note.** Verified
+  against `0.2.1-rc.2`: the in-process gate rides the `tools/pre-execute`
+  seam every RC since `0.2.0-rc.1` carries; the supported range is declared
+  in `engines.dsh`; the `hooks.json` form needs the optional
+  `@deepseek-ai/dsh-hooks-claude-code` bridge.
 - **`hooks/hooks.json` portability is verified, and its boundary is now
   recorded.** The hook runner shipped inside DeepSeek Harness 0.2.0-rc.2
   (`@deepseek-ai/dsh-hooks-claude-code`, read out of the app archive) settles
@@ -22,6 +69,29 @@ authoritative.
   any other workspace. The setup doc now records this contract, including the
   `${CLAUDE_PLUGIN_ROOT}` escape hatch for a machine-wide install. The
   published file stays machine-neutral, as the 0.4.0 reset intended.
+- **The bridge is not in the 0.2.1-rc.2 desktop bundle.** The same check,
+  re-run against the current desktop RC, finds
+  `@deepseek-ai/dsh-hooks-claude-code` absent from the shipped 295-package
+  tree — not bundled, not an optional bundle, not in the on-demand catalog;
+  it is still listed in the plugin catalog, so a plugin-market install is
+  the route. The live gate never used the hook form (the Python file is the
+  reference twin), so nothing regresses — but the portability conclusion
+  above describes 0.2.0-rc.2, not this build.
+
+### Notes
+
+- Verified against desktop RC 0.2.1-rc.2
+  (`@deepseek-ai/dsh-desktop-runtime`, Electron 44.7.0 / Node 24.21.0) by
+  reading the shipped package sources: the `tools/pre-execute` dispatch in
+  `dsh-tools`, the bundle-patch and compatibility gates in
+  `dsh-plugin-manager` / `dsh-app-boot`, the `llm.stream` service and
+  `EpochHeader.config` route in `dsh-llm`, `SessionHeader.cwd`, and the
+  settings-card seams (`configForms`, `settings.plugins.tab`,
+  `plugins.bundle.config`, `modelCatalog`, `dsh-client-ui-primitives`).
+- Still unverified: the hooks bridge under 0.2.1-rc.2 (not bundled); the
+  TypeSafe live replay is region-blocked from this machine (HTTP 451), so
+  the recorded-baseline replay could not run here — the offline sections
+  it gates on are green locally and in CI.
 
 ## [0.5.0] - 2026-10-10
 
