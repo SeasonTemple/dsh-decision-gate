@@ -151,7 +151,7 @@ def test_authorization_matches_a_whole_statement() -> None:
     # halves have to be stripped in the right order for this to match.
     assert (
         decision_gate.is_authorized(
-            "git -C 'C:\\example\\dsh-decision-gate' push origin main 2>&1 | Select-Object -Last 3",
+            "git -C 'C:\\example\\app' push origin main 2>&1 | Select-Object -Last 3",
             entries,
         )
         is True

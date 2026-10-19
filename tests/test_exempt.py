@@ -61,7 +61,7 @@ CWD = "C:/example/app"
     ],
 )
 def test_only_a_fully_confined_command_is_exempt(command: str, expected: bool) -> None:
-    cwd = CWD if command.startswith("rm C:/example/") else ""
+    cwd = CWD if command.startswith("rm C:/") else ""
     assert is_exempt(command, DEFAULT_EXEMPT_PREFIXES, cwd) is expected
 
 
