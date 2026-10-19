@@ -15,6 +15,14 @@
  * (`GenerateOptions` and `StreamChunk` mirror `@deepseek-ai/dsh-llm`'s
  * `lib/types/types.d.ts`).
  *
+ * Refreshed against the desktop RC `0.2.1-rc.2`, read out of the app
+ * archive: `cancel` joined `PreToolDecision`, `deny.reason` became
+ * required, `ask` gained `displayReason`, `ToolExecution` carries the
+ * caller's `signal`, and `finish` gained a `tool-calls` reason. What the
+ * plugin never touches stays undescribed on purpose — a narrow ambient
+ * declaration is what turns the next host change into a compile error
+ * instead of a silent behavior drift.
+ *
  * `@deepseek-ai/schemastery` is NOT declared here: it is a real runtime
  * dependency (package.json `dependencies`), imported by value for the `Config`
  * schema the DSH settings service renders its form from.
@@ -33,12 +41,15 @@ declare module '@deepseek-ai/cordis' {
 declare module '@deepseek-ai/dsh-tools' {
   export type PreToolDecision =
     | { kind: 'allow' }
-    | { kind: 'ask'; reason?: string }
-    | { kind: 'deny'; reason?: string }
+    | { kind: 'ask'; reason?: string; displayReason?: { readonly en: string; readonly [locale: string]: string } }
+    | { kind: 'deny'; reason: string; info?: unknown }
+    | { kind: 'cancel' }
 
   export interface ToolExecution {
     readonly name: string
     readonly arguments: unknown
+    /** Caller cancellation; the RC asks async gates to observe it. */
+    readonly signal?: AbortSignal
     readonly agent?: {
       id?: unknown
       session?: {
@@ -62,6 +73,13 @@ declare module '@deepseek-ai/dsh-llm' {
     }[]
     temperature?: number
     signal?: AbortSignal
+    reasoningEffort?: string
+    maxTokens?: number
+    stop?: readonly string[]
+    tools?: readonly unknown[]
+    toolHistory?: unknown
+    sessionId?: string
+    purpose?: 'compaction' | 'session-title'
   }
 
   /**
@@ -77,11 +95,12 @@ declare module '@deepseek-ai/dsh-llm' {
     | { type: 'block-end'; index: number; block: unknown }
     | { type: 'usage'; usage: unknown }
     | {
-      type: 'finish'
-      reason:
-        | { kind: 'stop' }
-        | { kind: 'error'; failure: { code: string; message: string } }
-        | { kind: 'aborted'; failure: { code: string; message: string } }
-        | { kind: 'max-tokens' }
-    }
+        type: 'finish'
+        reason:
+          | { kind: 'stop' }
+          | { kind: 'tool-calls' }
+          | { kind: 'error'; failure: { code: string; message: string } }
+          | { kind: 'aborted'; failure: { code: string; message: string } }
+          | { kind: 'max-tokens' }
+      }
 }
