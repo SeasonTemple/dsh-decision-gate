@@ -20,7 +20,7 @@ authoritative.
   `docs/decision-gate-setup.md` is the English twin of
   `docs/decision-gate-setup.zh.md`, and the docs site links both.
   - Both READMEs and both setup guides replace the author's workspace path
-    (`C:/example/dsh-decision-gate`) in install commands and examples with a
+    (an absolute path) in install commands and examples with a
     `/path/to/dsh-decision-gate` placeholder — an absolute path is a deploy-local
     value (AGENT.md rule 16), and the docs already use `<you>` placeholders
     elsewhere. Test fixtures and CHANGELOG history keep their paths on purpose:
