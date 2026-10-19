@@ -209,7 +209,7 @@ src/index.ts          插件源码
 src/parity.ts         Python↔TypeScript 决策对齐测试
 hooks/                 Python 孪生实现（规格与回归基线）
 tests/                 Python 孪生的 pytest 套件 + hook 配置测试
-docs/decision-gate-setup.md   部署与验证记录（安装、配置通道、标定复盘）
+docs/decision-gate-setup.zh.md（中文）/ docs/decision-gate-setup.md（英文）   部署与验证记录（安装、配置通道、标定复盘）
 AGENT.md              给改这个插件的 agent 看的规矩（不进包）
 examples/             实时链路测试用的探针 payload
 CHANGELOG.md          版本记录
@@ -240,7 +240,7 @@ parity 的离线段不需要 API key；基线决策重放需要 `TYPESAFE_API_KE
 放行（危险信号低于阈值）和近期拒绝（供误杀审查）。
 
 部署与标定记录——安装路径、两个配置通道、探针数据表、历次阈值复盘——在
-`docs/decision-gate-setup.md`。
+`docs/decision-gate-setup.zh.md（中文）/ docs/decision-gate-setup.md（英文）`。
 
 ## 许可
 

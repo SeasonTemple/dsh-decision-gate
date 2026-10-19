@@ -12,7 +12,8 @@ pre-authorized list for approved irreversible steps.
 
 ## Docs
 
-- [Setup and verification guide (简体中文)](decision-gate-setup.html)
+- [Setup and verification guide (English)](decision-gate-setup.html)
+- [Setup and verification guide (简体中文)](decision-gate-setup.zh.html)
 - [Release notes](release-notes/)
 - [Changelog (GitHub)](https://github.com/SeasonTemple/dsh-decision-gate/blob/main/CHANGELOG.md)
 - [README — English](https://github.com/SeasonTemple/dsh-decision-gate/blob/main/README.md)

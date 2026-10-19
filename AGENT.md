@@ -4,7 +4,7 @@
 这份文件改它。
 
 **本文件只写规则和坑，不复制别处的内容。** 安装 / 配置 / 使用看 `README.md`（英文）
-和 `README.zh.md`（中文）；部署细节与阈值标定记录看 `docs/decision-gate-setup.md`。
+和 `README.zh.md`（中文）；部署细节与阈值标定记录看 `docs/decision-gate-setup.md`（英文）/ `docs/decision-gate-setup.zh.md`（中文）。
 那份文档是唯一真源——这里只做指针，避免出现第二份会漂移的真相。
 
 下面每一条都是**被违反过才写下来的**。不要靠人提醒，动手前先读完。

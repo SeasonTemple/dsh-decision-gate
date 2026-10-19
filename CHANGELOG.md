@@ -16,6 +16,9 @@ authoritative.
   `hooks`, `safety`), the density the comparable projects use. Both READMEs
   drop the stale static "Tests: 120 passing" badge for a live CI badge, a
   release-version badge, and a docs badge.
+  The setup and verification guide now ships in English too:
+  `docs/decision-gate-setup.md` is the English twin of
+  `docs/decision-gate-setup.zh.md`, and the docs site links both.
 
 ## [0.5.1] - 2026-10-19
 

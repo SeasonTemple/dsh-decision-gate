@@ -239,7 +239,7 @@ src/index.ts          plugin source
 src/parity.ts         Python↔TypeScript decision parity harness
 hooks/                Python twin (specification and regression baseline)
 tests/                pytest suite for the Python twin + hook config
-docs/decision-gate-setup.md  deployment and calibration record
+docs/decision-gate-setup.md (English) / docs/decision-gate-setup.zh.md (中文)  deployment and calibration record
 AGENT.md              rules for agents working on this repo (not shipped)
 examples/             probe payloads used by the live-path tests
 ```
@@ -276,7 +276,7 @@ below its threshold), and recent denials for false-deny review.
 
 The deployment and calibration record — install paths, both config channels,
 the probe tables, and the periodic threshold reviews — lives in
-`docs/decision-gate-setup.md`.
+`docs/decision-gate-setup.md (English) / docs/decision-gate-setup.zh.md (中文)`.
 
 ## License
 
