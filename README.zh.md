@@ -6,9 +6,11 @@
 
 <sub>校准过的阈值、按路径的豁免、JSONL 决策日志——因为联系不上裁判的门禁，绝不能反过来成为卡死 harness 的那个东西。<a href="#工作原理">工作原理 →</a></sub>
 
+[![CI](https://github.com/SeasonTemple/dsh-decision-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/SeasonTemple/dsh-decision-gate/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/SeasonTemple/dsh-decision-gate)](https://github.com/SeasonTemple/dsh-decision-gate/releases)
+[![Docs](https://img.shields.io/badge/docs-github%20pages-blue)](https://seasontemple.github.io/dsh-decision-gate/)
 [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL_1.1-blue.svg)](LICENSE)
 [![Node >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
-[![Tests: 120 passing](https://img.shields.io/badge/tests-120_passing-brightgreen.svg)](#验证)
 
 [English](README.md) · [简体中文](README.zh.md) · [工作原理](#工作原理) · [裁判后端](#裁判后端) · [安装](#安装) · [验证](#验证) · [版本记录](CHANGELOG.md)
 

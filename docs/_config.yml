@@ -1,0 +1,5 @@
+title: dsh-decision-gate
+description: A PreToolUse decision gate for DSH — five questions before every shell command, then allow, ask, or deny.
+theme: jekyll-theme-slate
+show_downloads: false
+github: [metadata]

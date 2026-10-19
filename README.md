@@ -6,9 +6,11 @@
 
 <sub>Calibrated thresholds, a path-scoped exemption, and a JSONL decision log — because a gate that cannot reach its judge must never become the thing that blocks the harness. <a href="#how-it-works">How it works →</a></sub>
 
+[![CI](https://github.com/SeasonTemple/dsh-decision-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/SeasonTemple/dsh-decision-gate/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/SeasonTemple/dsh-decision-gate)](https://github.com/SeasonTemple/dsh-decision-gate/releases)
+[![Docs](https://img.shields.io/badge/docs-github%20pages-blue)](https://seasontemple.github.io/dsh-decision-gate/)
 [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL_1.1-blue.svg)](LICENSE)
 [![Node >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
-[![Tests: 120 passing](https://img.shields.io/badge/tests-120_passing-brightgreen.svg)](#verify)
 
 [English](README.md) · [简体中文](README.zh.md) · [How it works](#how-it-works) · [Judge backends](#judge-backends) · [Install](#install) · [Verify](#verify) · [Changelog](CHANGELOG.md)
 

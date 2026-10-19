@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The project uses
 semantic versioning; the version in `package.json` and `dsh.plugin.json` is
 authoritative.
 
+## [Unreleased]
+
+### Docs
+
+- **A docs site, and the discovery basics that go with it.** GitHub Pages now
+  serves `docs/` at seasontemple.github.io/dsh-decision-gate (Jekyll, with a
+  landing page), and the repo homepage points at it. Topics grew from 11 to 19
+  with the long-tail terms this project actually answers to (`llm`,
+  `ai-agents`, `shell`, `permissions`, `typesafe`, `deepseek-harness`,
+  `hooks`, `safety`), the density the comparable projects use. Both READMEs
+  drop the stale static "Tests: 120 passing" badge for a live CI badge, a
+  release-version badge, and a docs badge.
+
 ## [0.5.1] - 2026-10-19
 
 ### Added
